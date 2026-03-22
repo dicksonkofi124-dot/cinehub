@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>CineHub - Discover Amazing Movies</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-film"></i>
+                    <span>CineHub</span>
+                </div>
+                <div class="nav-menu">
+                    <ul class="nav-list">
+                        <li><a href="#home" class="nav-link active">Home</a></li>
+                        <li><a href="#movies" class="nav-link">Movies</a></li>
+                        <li><a href="#trending" class="nav-link">Trending</a></li>
+                        <li><a href="#about" class="nav-link">About</a></li>
+                    </ul>
+                </div>
+                <div class="nav-actions">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search movies..." class="search-input">
+                        <button id="searchBtn" class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Discover Amazing Movies</h1>
+            <p class="hero-subtitle">Explore thousands of movies from classics to blockbusters</p>
+            <div class="hero-buttons">
+                <button id="exploreBtn" class="btn btn-primary">Explore Movies</button>
+                <button id="trendingBtn" class="btn btn-secondary">Trending Now</button>
+            </div>
+        </div>
+        <div class="hero-overlay"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filter-section">
+        <div class="container">
+            <div class="filter-container">
+                <select id="genreFilter" class="filter-select">
+                    <option value="">All Genres</option>
+                    <option value="28">Action</option>
+                    <option value="12">Adventure</option>
+                    <option value="16">Animation</option>
+                    <option value="35">Comedy</option>
+                    <option value="80">Crime</option>
+                    <option value="99">Documentary</option>
+                    <option value="18">Drama</option>
+                    <option value="10751">Family</option>
+                    <option value="14">Fantasy</option>
+                    <option value="36">History</option>
+                    <option value="27">Horror</option>
+                    <option value="10402">Music</option>
+                    <option value="9648">Mystery</option>
+                    <option value="10749">Romance</option>
+                    <option value="878">Science Fiction</option>
+                    <option value="53">Thriller</option>
+                    <option value="10752">War</option>
+                    <option value="37">Western</option>
+                </select>
+                <select id="yearFilter" class="filter-select">
+                    <option value="">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+                <select id="ratingFilter" class="filter-select">
+                    <option value="">All Ratings</option>
+                    <option value="9">9+ Stars</option>
+                    <option value="8">8+ Stars</option>
+                    <option value="7">7+ Stars</option>
+                    <option value="6">6+ Stars</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Movies Section -->
+    <main id="movies" class="movies-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Popular Movies</h2>
+                <div class="view-toggle">
+                    <button id="gridView" class="view-btn active"><i class="fas fa-th"></i></button>
+                    <button id="listView" class="view-btn"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+            <div id="moviesGrid" class="movies-grid"></div>
+            <div id="loadingSpinner" class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <div class="load-more-container">
+                <button id="loadMoreBtn" class="btn btn-secondary">Load More</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Movie Modal -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <div class="movie-details">
+                <div class="movie-poster-container">
+                    <img id="modalPoster" src="" alt="Movie Poster" class="movie-poster">
+                </div>
+                <div class="movie-info">
+                    <h2 id="modalTitle"></h2>
+                    <div class="movie-meta">
+                        <span id="modalYear"></span>
+                        <span id="modalRuntime"></span>
+                        <span id="modalRating" class="rating"></span>
+                    </div>
+                    <div id="modalGenres" class="movie-genres"></div>
+                    <p id="modalOverview" class="movie-overview"></p>
+                    <div class="movie-cast">
+                        <h3>Cast</h3>
+                        <div id="modalCast" class="cast-list"></div>
+                    </div>
+                    <div class="movie-actions">
+                        <button class="btn btn-primary trailer-btn">
+                            <i class="fas fa-play"></i> Watch Trailer
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="btn btn-secondary watchlist-btn">
+                            <i class="fas fa-plus"></i> Add to Watchlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-film"></i> CineHub
+                    </div>
+                    <p>Your ultimate destination for discovering movies</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#movies">Movies</a></li>
+                        <li><a href="#trending">Trending</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> busynessmy1842@gmail.com</p>
+                    <p><i class="fab fa-whatsapp"></i> +233 269 206 297</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>©️ 2026 CineHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
