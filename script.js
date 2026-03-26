@@ -79,9 +79,18 @@ function setupEventListeners() {
             });
         }
     });
+
+    // Watchlist button handler
+    document.addEventListener('click', e => {
+        if (e.target.closest('.watchlist-btn')) {
+            const card = e.target.closest('.movie-card');
+            const movieId = card ? parseInt(card.dataset.movieId) : currentMovie ? currentMovie.id : null;
+            if (movieId) toggleWatchlist(movieId);
+        }
+    });
 }
 
-// Added: SwitchSection for all navigation links (fixes issue 1, 4, and logo click)
+// Watchlist navigation and rendering
 function switchSection(sectionId) {
     document.querySelectorAll('section, main').forEach(s => s.style.display = 'none');
     const target = document.getElementById(sectionId);
@@ -89,19 +98,23 @@ function switchSection(sectionId) {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     const activeLink = document.querySelector(`a[href="#${sectionId}"]`);
     if (activeLink) activeLink.classList.add('active');
+    if (sectionId === 'watchlist') renderWatchlist();
 }
 
-// Added: Attach navigation to all nav links (including logo in HTML)
+// Attach navigation to all links
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         const sectionId = link.getAttribute('href').substring(1);
         switchSection(sectionId);
-        if (sectionId === 'watchlist') renderWatchlist();
     });
 });
 
-// Added: Watchlist functionality (add/remove)
+// Logo click to Home
+document.querySelector('.nav-logo').addEventListener('click', () => {
+    switchSection('home');
+});
+
 function toggleWatchlist(movieId) {
     let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
     if (watchlist.includes(movieId)) {
@@ -155,7 +168,6 @@ async function renderWatchlist() {
 }
 
 // ─── Rest of your original code (unchanged) ─────────────────────────
-
 function showLoading() {
     els.loadingSpinner.classList.add('active');
     els.loadMoreBtn.disabled = true;
@@ -400,7 +412,7 @@ if (!document.getElementById('notification-styles')) {
     document.head.appendChild(s);
 }
 
-// ─── Trailer Functions (NaijaPrey-style direct embed) ─────────────────────────
+// ─── Trailer Functions ─────────────────────────
 
 async function getMovieTrailer(movieId, title, year) {
     try {
