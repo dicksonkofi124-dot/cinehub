@@ -100,6 +100,15 @@ body {
     padding: 0.5rem;
 }
 
+.hamburger span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+    transition: 0.3s;
+}
+
 .nav-menu.active .nav-list {
     display: flex;
     flex-direction: column;
@@ -324,7 +333,19 @@ body {
     padding: 1.8rem;
 }
 
-/* Cast Section – Fixed Size & Horizontal Scroll */
+/* Larger close button */
+.close {
+    font-size: 42px !important;
+    padding: 12px !important;
+    width: 52px !important;
+    height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+}
+
+/* Cast Section */
 .movie-cast {
     margin-top: 1.5rem;
 }
@@ -387,58 +408,6 @@ body {
     white-space: nowrap;
 }
 
-/* Responsive cast size adjustments */
-@media (min-width: 768px) {
-    .cast-member {
-        width: 90px;
-    }
-    .cast-member img {
-        width: 70px !important;
-        height: 70px !important;
-        min-width: 70px;
-        min-height: 70px;
-        max-width: 70px;
-        max-height: 70px;
-    }
-    .cast-member p {
-        font-size: 0.82rem;
-    }
-}
-
-@media (min-width: 1024px) {
-    .cast-member {
-        width: 100px;
-    }
-    .cast-member img {
-        width: 74px !important;
-        height: 74px !important;
-        min-width: 74px;
-        min-height: 74px;
-        max-width: 74px;
-        max-height: 74px;
-    }
-    .cast-member p {
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 360px) {
-    .cast-member {
-        width: 70px;
-    }
-    .cast-member img {
-        width: 56px !important;
-        height: 56px !important;
-        min-width: 56px;
-        min-height: 56px;
-        max-width: 56px;
-        max-height: 56px;
-    }
-    .cast-member p {
-        font-size: 0.74rem;
-    }
-}
-
 /* Trailer Modal */
 .trailer-modal {
     position: fixed;
@@ -496,12 +465,52 @@ body {
     border: none;
 }
 
-/* Footer */
+/* Footer - Fixed to show in block/grid manner on mobile */
 .footer {
     padding: 4rem 0 2.5rem;
     border-top: 1px solid var(--border);
-    text-align: center;
     background: var(--bg-dark);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.footer-logo {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.8rem;
+}
+
+.footer-section h4 {
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section a {
+    color: var(--text-muted);
+    text-decoration: none;
+    line-height: 2;
+}
+
+.footer-section a:hover {
+    color: var(--primary);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
 /* Responsive breakpoints */
@@ -521,4 +530,10 @@ body {
     .hero-title { font-size: 2.3rem; }
     .btn { padding: 0.75rem 1.5rem; font-size: 0.92rem; }
     .movies-grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 1rem; }
+    
+    /* Footer remains in clean block/grid even on small screens */
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 2rem;
+    }
 }

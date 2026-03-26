@@ -16,14 +16,17 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <i class="fas fa-film"></i>
-                    <span>CineHub</span>
+                    <a href="#home" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-film"></i>
+                        <span>CineHub</span>
+                    </a>
                 </div>
                 <div class="nav-menu">
                     <ul class="nav-list">
                         <li><a href="#home" class="nav-link active">Home</a></li>
                         <li><a href="#movies" class="nav-link">Movies</a></li>
                         <li><a href="#trending" class="nav-link">Trending</a></li>
+                        <li><a href="#watchlist" class="nav-link">Watchlist</a></li>
                         <li><a href="#about" class="nav-link">About</a></li>
                     </ul>
                 </div>
@@ -119,10 +122,47 @@
         </div>
     </main>
 
+    <!-- Trending Section (added as minimal add-on) -->
+    <section id="trending" class="movies-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Trending This Week</h2>
+                <div class="view-toggle">
+                    <button id="gridViewTrending" class="view-btn active"><i class="fas fa-th"></i></button>
+                    <button id="listViewTrending" class="view-btn"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+            <div id="trendingGrid" class="movies-grid"></div>
+        </div>
+    </section>
+
+    <!-- Watchlist Section -->
+    <section id="watchlist" class="watchlist-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">My Watchlist</h2>
+                <button id="clearWatchlistBtn" class="btn btn-secondary">Clear Watchlist</button>
+            </div>
+            <div id="watchlistGrid" class="movies-grid"></div>
+            <p id="watchlistEmpty" class="empty-message" style="display: none; text-align: center; padding: 4rem; color: #888;">
+                Your watchlist is empty. Add movies from the Popular Movies section.
+            </p>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section" style="display: none;">
+        <div class="container">
+            <h2 class="section-title">About CineHub</h2>
+            <p>CineHub is your ultimate destination for discovering amazing movies. We bring together the latest blockbusters, timeless classics, and trending titles all in one place.</p>
+            <p>Built with passion for cinema lovers.</p>
+        </div>
+    </section>
+
     <!-- Movie Modal -->
     <div id="movieModal" class="modal">
         <div class="modal-content">
-            <span class="close">×</span>
+            <span class="close" style="font-size: 42px; padding: 12px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;">×</span>
             <div class="movie-details">
                 <div class="movie-poster-container">
                     <img id="modalPoster" src="" alt="Movie Poster" class="movie-poster">
@@ -172,6 +212,16 @@
                         <li><a href="#home">Home</a></li>
                         <li><a href="#movies">Movies</a></li>
                         <li><a href="#trending">Trending</a></li>
+                        <li><a href="#watchlist">Watchlist</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="dmca.html">DMCA Policy</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="cookie.html">Cookie Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">

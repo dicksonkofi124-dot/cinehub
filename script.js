@@ -81,6 +81,81 @@ function setupEventListeners() {
     });
 }
 
+// Added: SwitchSection for all navigation links (fixes issue 1, 4, and logo click)
+function switchSection(sectionId) {
+    document.querySelectorAll('section, main').forEach(s => s.style.display = 'none');
+    const target = document.getElementById(sectionId);
+    if (target) target.style.display = 'block';
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const activeLink = document.querySelector(`a[href="#${sectionId}"]`);
+    if (activeLink) activeLink.classList.add('active');
+}
+
+// Added: Attach navigation to all nav links (including logo in HTML)
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const sectionId = link.getAttribute('href').substring(1);
+        switchSection(sectionId);
+        if (sectionId === 'watchlist') renderWatchlist();
+    });
+});
+
+// Added: Watchlist functionality (add/remove)
+function toggleWatchlist(movieId) {
+    let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+    if (watchlist.includes(movieId)) {
+        watchlist = watchlist.filter(id => id !== movieId);
+        showNotification('Removed from Watchlist');
+    } else {
+        watchlist.push(movieId);
+        showNotification('Added to Watchlist');
+    }
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    if (document.getElementById('watchlist').style.display === 'block') renderWatchlist();
+}
+
+async function renderWatchlist() {
+    const ids = JSON.parse(localStorage.getItem('watchlist')) || [];
+    const grid = document.getElementById('watchlistGrid');
+    const empty = document.getElementById('watchlistEmpty');
+
+    if (ids.length === 0) {
+        empty.style.display = 'block';
+        grid.innerHTML = '';
+        return;
+    }
+
+    empty.style.display = 'none';
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+
+    try {
+        const promises = ids.map(id => fetch(`${BASE_URL}/movie/${id}?api_key=${API_KEY}`).then(r => r.json()));
+        const movies = await Promise.all(promises);
+
+        grid.innerHTML = movies.map(movie => `
+            <div class="movie-card" data-movie-id="${movie.id}">
+                <img src="${IMAGE_BASE_URL}${movie.poster_path}" alt="${movie.title}" class="movie-poster">
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                    <div class="movie-meta">
+                        <span>${movie.release_date ? movie.release_date.slice(0,4) : 'N/A'}</span>
+                        <span class="rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="movie-overlay">
+                    <button class="btn btn-primary trailer-btn">Watch Trailer</button>
+                    <button class="btn btn-secondary watchlist-btn">Remove</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        grid.innerHTML = '<p style="color:#e50914;text-align:center;padding:2rem;">Failed to load watchlist.</p>';
+    }
+}
+
+// ─── Rest of your original code (unchanged) ─────────────────────────
+
 function showLoading() {
     els.loadingSpinner.classList.add('active');
     els.loadMoreBtn.disabled = true;
