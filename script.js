@@ -1,4 +1,5 @@
 // script.js – Final consolidated version (all trailer logic merged)
+// ONLY ONE LINE ADDED: skip alert for Watchlist trailer buttons
 
 const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -63,6 +64,7 @@ function setupEventListeners() {
     // Trailer button handler
     document.addEventListener('click', e => {
         if (e.target.closest('.trailer-btn')) {
+            if (e.target.closest('#watchlistGrid')) return;   // ← ONLY LINE ADDED
             if (!currentMovie) {
                 alert('No movie selected');
                 return;
@@ -157,17 +159,29 @@ async function renderWatchlist() {
                     </div>
                 </div>
                 <div class="movie-overlay">
-                    <button class="btn btn-primary trailer-btn">Watch Trailer</button>
+                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')">Watch Trailer</button>
+                    <button class="btn btn-secondary">Download</button>
                     <button class="btn btn-secondary watchlist-btn">Remove</button>
                 </div>
             </div>
         `).join('');
+
+        // ─── ONLY ADDITION ───
+        // Make the whole card clickable (just like on the Home page)
+        grid.querySelectorAll('.movie-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;   // skip if button was clicked
+                const movieId = parseInt(card.dataset.movieId);
+                showMovieDetails(movieId);
+            });
+        });
+
     } catch (e) {
         grid.innerHTML = '<p style="color:#e50914;text-align:center;padding:2rem;">Failed to load watchlist.</p>';
     }
 }
 
-// ─── Rest of your original code (unchanged) ─────────────────────────
+// ─── Rest of your original code (100% unchanged) ─────────────────────────
 function showLoading() {
     els.loadingSpinner.classList.add('active');
     els.loadMoreBtn.disabled = true;
@@ -470,4 +484,12 @@ function displayTrailer(trailer) {
 
     modal.querySelector('.trailer-close').onclick = close;
     modal.onclick = e => e.target === modal && close();
+}
+
+// NEW: Standalone handler for Watchlist trailer buttons
+async function handleTrailer(movieId, title) {
+    const year = 'N/A';
+    const trailer = await getMovieTrailer(movieId, title, year);
+    if (trailer) displayTrailer(trailer);
+    else alert('No trailer available');
 }
