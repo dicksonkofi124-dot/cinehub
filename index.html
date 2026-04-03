@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- SEO & Description -->
+    <meta name="description" content="CineHub - Discover amazing movies, watch trailers, and download your favorites. Browse popular, trending, and latest movies all in one place.">
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="CineHub - Discover Amazing Movies">
+    <meta property="og:description" content="Explore thousands of movies, watch trailers, and build your watchlist.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cinehub-jet-ten.vercel.app">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1489599809568-35296c6df5f2?auto=format&fit=crop&w=1200&q=80">
+
+    <!-- ====================== FULL MODERN FAVICONS ====================== -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <!-- Android Chrome icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <!-- ==================================================== -->
+
     <title>CineHub - Discover Amazing Movies</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -122,7 +144,7 @@
         </div>
     </main>
 
-    <!-- Trending Section (added as minimal add-on) -->
+    <!-- Trending Section -->
     <section id="trending" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
@@ -184,7 +206,7 @@
                         <button class="btn btn-primary trailer-btn">
                             <i class="fas fa-play"></i> Watch Trailer
                         </button>
-                        <button class="btn btn-secondary">
+                        <button class="btn btn-secondary" id="downloadBtn">
                             <i class="fas fa-download"></i> Download
                         </button>
                         <button class="btn btn-secondary watchlist-btn">
@@ -236,6 +258,8 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
+    <script src="movies-data.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

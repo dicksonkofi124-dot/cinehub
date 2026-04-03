@@ -1,5 +1,6 @@
 /* ====================================================
    CineHub - Final Responsive Styles (2026)
+   Updated for better section navigation (Trending + Logo fixes)
    ==================================================== */
 
 :root {
@@ -224,11 +225,17 @@ body {
     min-width: 145px;
 }
 
-/* Movies Section */
+/* Movies & Trending Section */
 .movies-section {
     padding: 2.5rem 0 5rem;
 }
 
+/* Fix: Ensure trending section behaves exactly like movies section */
+#trending.movies-section {
+    display: none; /* controlled by JS */
+}
+
+/* Section Header */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -268,6 +275,7 @@ body {
     gap: 1.4rem;
 }
 
+/* Movie Card */
 .movie-card {
     background: var(--bg-card);
     border-radius: var(--radius);
@@ -300,8 +308,6 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    line-clamp: 2;
-    box-orient: vertical;
 }
 
 .movie-meta {
@@ -311,7 +317,7 @@ body {
     color: var(--text-muted);
 }
 
-/* Modal */
+/* Modal, Cast, Trailer Modal (unchanged) */
 .modal {
     display: none;
     position: fixed;
@@ -333,7 +339,6 @@ body {
     padding: 1.8rem;
 }
 
-/* Larger close button */
 .close {
     font-size: 42px !important;
     padding: 12px !important;
@@ -345,7 +350,6 @@ body {
     cursor: pointer;
 }
 
-/* Cast Section */
 .movie-cast {
     margin-top: 1.5rem;
 }
@@ -465,7 +469,7 @@ body {
     border: none;
 }
 
-/* Footer - Fixed to show in block/grid manner on mobile */
+/* Footer */
 .footer {
     padding: 4rem 0 2.5rem;
     border-top: 1px solid var(--border);
@@ -531,7 +535,6 @@ body {
     .btn { padding: 0.75rem 1.5rem; font-size: 0.92rem; }
     .movies-grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 1rem; }
     
-    /* Footer remains in clean block/grid even on small screens */
     .footer-content {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 2rem;
