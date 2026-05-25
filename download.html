@@ -215,21 +215,19 @@
                     
                     // Set the click behavior to open the direct server path natively
                     actionBtn.onclick = () => {
-                        window.location.href = targetDownloadUrl;
-                    };
-                })
-                .catch(err => {
-                    console.error("Wake-up ping failed:", err);
-                    // Fallback to letting them click anyway if the ping mechanism blocks it
-                    textEl.textContent = "Ready to Download";
-                    subtextEl.textContent = "Click below to send the stream instruction directly to the file bridge.";
-                    actionBtn.disabled = false;
-                    actionBtn.innerHTML = '<i class="fas fa-download"></i> Force Download';
-                    actionBtn.onclick = () => {
-                        window.location.href = targetDownloadUrl;
-                    };
-                });
-        }
-    </script>
-</body>
-</html>
+    actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Stream...';
+    actionBtn.disabled = true;
+
+    // Forces browser to treat incoming Telegram stream data as a native file save partition
+    const triggerAnchor = document.createElement('a');
+    triggerAnchor.href = targetDownloadUrl;
+    triggerAnchor.setAttribute('download', '');
+    document.body.appendChild(triggerAnchor);
+    triggerAnchor.click();
+    document.body.removeChild(triggerAnchor);
+
+    setTimeout(() => {
+        actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+        actionBtn.disabled = false;
+    }, 5000);
+};
