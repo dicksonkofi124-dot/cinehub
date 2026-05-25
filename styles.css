@@ -300,13 +300,22 @@ body {
     padding: 0.9rem;
 }
 
+/* ====================================================
+   Updated Movie Title Multi-line Truncation Fix
+   ==================================================== */
 .movie-title {
     font-size: 0.98rem;
     font-weight: 600;
     margin-bottom: 0.45rem;
+    
+    /* 1. Modern Standard Property to clear the warning */
+    line-clamp: 2;
+    
+    /* 2. Legacy Vendor Prefixes for Older Engine Compatibility */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    
     overflow: hidden;
 }
 
@@ -410,6 +419,95 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Netflix-style Season Dropdown Selector */
+.season-selector-container {
+    margin: 1rem 0;
+}
+
+.season-dropdown-select {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    background: #1a1a1a;
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+
+.season-dropdown-select:hover {
+    border-color: var(--primary);
+}
+
+.season-dropdown-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.episodes-container {
+    margin-top: 1rem;
+}
+
+.season-episodes-display {
+    background: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.season-episodes-display::-webkit-scrollbar {
+    width: 6px;
+}
+
+.season-episodes-display::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+.episode-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid #222;
+    transition: background var(--transition);
+}
+
+.episode-item:last-child {
+    border-bottom: none;
+}
+
+.episode-item:hover {
+    background: #252525;
+}
+
+.episode-number {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.episode-download-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background var(--transition);
+}
+
+.episode-download-btn:hover {
+    background: var(--primary-hover);
 }
 
 /* Trailer Modal */

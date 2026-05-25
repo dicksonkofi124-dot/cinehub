@@ -47,6 +47,7 @@
                     <ul class="nav-list">
                         <li><a href="#home" class="nav-link active">Home</a></li>
                         <li><a href="#movies" class="nav-link">Movies</a></li>
+                        <li><a href="#animation" class="nav-link">Animation</a></li>
                         <li><a href="#trending" class="nav-link">Trending</a></li>
                         <li><a href="#watchlist" class="nav-link">Watchlist</a></li>
                         <li><a href="#about" class="nav-link">About</a></li>
@@ -144,6 +145,20 @@
         </div>
     </main>
 
+    <!-- Animation Section -->
+    <section id="animation" class="movies-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Animation</h2>
+                <div class="view-toggle">
+                    <button id="gridViewAnimation" class="view-btn active"><i class="fas fa-th"></i></button>
+                    <button id="listViewAnimation" class="view-btn"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+            <div id="animationGrid" class="movies-grid"></div>
+        </div>
+    </section>
+
     <!-- Trending Section -->
     <section id="trending" class="movies-section" style="display: none;">
         <div class="container">
@@ -159,12 +174,13 @@
     </section>
 
     <!-- Watchlist Section -->
-    <section id="watchlist" class="watchlist-section" style="display: none;">
+    <section id="watchlist" class="watchlist-section" style="display: none; padding: 2.5rem 0 5rem;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">My Watchlist</h2>
                 <button id="clearWatchlistBtn" class="btn btn-secondary">Clear Watchlist</button>
             </div>
+            <!-- Your grid shell will now cleanly receive the stylized interactive button cards -->
             <div id="watchlistGrid" class="movies-grid"></div>
             <p id="watchlistEmpty" class="empty-message" style="display: none; text-align: center; padding: 4rem; color: #888;">
                 Your watchlist is empty. Add movies from the Popular Movies section.
@@ -233,6 +249,7 @@
                     <ul>
                         <li><a href="#home">Home</a></li>
                         <li><a href="#movies">Movies</a></li>
+                        <li><a href="#animation">Animation</a></li>
                         <li><a href="#trending">Trending</a></li>
                         <li><a href="#watchlist">Watchlist</a></li>
                     </ul>

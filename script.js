@@ -1,6 +1,7 @@
 // script.js – Final consolidated version (all trailer logic merged)
 // ONLY ONE LINE CHANGED: runtime format updated to hours and minutes
 
+// ================= CONFIG =================
 const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const YOUTUBE_API_KEY = 'AIzaSyDu1y5xIX9-DblXaN7Ek7Y1Xg996ez0zwQ';
@@ -37,6 +38,10 @@ const els = {
     trendingGrid: document.getElementById('trendingGrid'),
     gridViewTrending: document.getElementById('gridViewTrending'),
     listViewTrending: document.getElementById('listViewTrending'),
+    // Added for animation section
+    animationGrid: document.getElementById('animationGrid'),
+    gridViewAnimation: document.getElementById('gridViewAnimation'),
+    listViewAnimation: document.getElementById('listViewAnimation'),
     clearWatchlistBtn: document.getElementById('clearWatchlistBtn')
 };
 
@@ -63,6 +68,10 @@ function setupEventListeners() {
     // Fixed: Trending view toggles
     if (els.gridViewTrending) els.gridViewTrending.addEventListener('click', () => setViewMode('grid'));
     if (els.listViewTrending) els.listViewTrending.addEventListener('click', () => setViewMode('list'));
+
+    // Animation view toggles
+    if (els.gridViewAnimation) els.gridViewAnimation.addEventListener('click', () => setViewMode('grid'));
+    if (els.listViewAnimation) els.listViewAnimation.addEventListener('click', () => setViewMode('list'));
 
     els.loadMoreBtn.addEventListener('click', loadMoreMovies);
 
@@ -135,6 +144,12 @@ function switchSection(sectionId) {
     if (sectionId === 'trending') {
         loadTrendingMovies();
     }
+
+    // Load animations when user clicks Animation in nav
+    if (sectionId === 'animation') {
+        loadAnimations();
+    }
+
     if (sectionId === 'watchlist') renderWatchlist();
 }
 
@@ -163,6 +178,14 @@ function toggleWatchlist(movieId) {
         showNotification('Added to Watchlist');
     }
     localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    
+    // Update watchlist button text if modal is open
+    const watchlistBtn = document.querySelector('.watchlist-btn');
+    if (watchlistBtn) {
+        const isInWatchlist = watchlist.includes(movieId);
+        watchlistBtn.innerHTML = isInWatchlist ? '<i class="fas fa-minus"></i> Remove from Watchlist' : '<i class="fas fa-plus"></i> Add to Watchlist';
+    }
+    
     if (document.getElementById('watchlist').style.display === 'block') renderWatchlist();
 }
 
@@ -231,31 +254,80 @@ function hideLoading() {
 async function fetchFromAPI(endpoint) {
     try {
         showLoading();
-        const res = await fetch(`${BASE_URL}${endpoint}&api_key=${API_KEY}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const url = `${BASE_URL}${endpoint}${separator}api_key=${API_KEY}`;
+        console.log('Fetching:', url);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
         const data = await res.json();
         hideLoading();
         return data;
     } catch (err) {
+        console.error('Fetch failed:', err.message, err);
         hideLoading();
         return null;
     }
 }
 
 async function loadPopularMovies(retry = 0) {
-    const data = await fetchFromAPI(`/movie/popular?language=en-US&page=${currentPage}`);
-    if (data?.results?.length) {
-        if (currentPage === 1) {
-            allMovies = data.results;
-            displayMovies(allMovies);
-        } else {
-            allMovies.push(...data.results);
-            appendMovies(data.results);
+    // Only load movies that have been uploaded (in downloadLinks)
+    if (window.downloadLinks) {
+        const movieIds = Object.keys(window.downloadLinks).map(id => parseInt(id));
+        
+        if (movieIds.length === 0) {
+            els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
+            els.loadMoreBtn.style.display = 'none';
+            return;
         }
-    } else if (retry < 2) {
-        setTimeout(() => loadPopularMovies(retry + 1), 1200);
+
+        showLoading();
+        
+        try {
+            const promises = movieIds.map(id => fetchFromAPI(`/movie/${id}`));
+            const movies = await Promise.all(promises);
+            const validMovies = movies.filter(m => m !== null);
+            
+            if (currentPage === 1) {
+                allMovies = validMovies;
+                // Add series from seriesData to the grid
+                if (window.seriesData) {
+                    const seriesList = Object.values(window.seriesData).map(series => ({
+                        id: series.id,
+                        title: series.title,
+                        poster_path: series.poster_path,
+                        release_date: "2021-01-01",
+                        vote_average: 8.5,
+                        media_type: "tv"
+                    }));
+                    allMovies = [...seriesList, ...allMovies];
+                }
+                // Add animations from animationData to the grid
+                if (window.animationData) {
+                    const animationList = Object.values(window.animationData).map(animation => ({
+                        id: animation.id,
+                        title: animation.title,
+                        poster_path: animation.poster_path,
+                        release_date: "2021-01-01",
+                        vote_average: 8.5,
+                        media_type: "tv"
+                    }));
+                    allMovies = [...animationList, ...allMovies];
+                }
+                displayMovies(allMovies);
+            }
+            hideLoading();
+        } catch (err) {
+            console.error('Failed to load uploaded movies:', err);
+            hideLoading();
+            if (retry < 2) {
+                setTimeout(() => loadPopularMovies(retry + 1), 1200);
+            } else {
+                showFallbackContent();
+            }
+        }
     } else {
-        showFallbackContent();
+        els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
+        els.loadMoreBtn.style.display = 'none';
     }
 }
 
@@ -273,23 +345,77 @@ async function loadTrendingMovies() {
     currentGenre = currentYear = currentRating = currentSearch = '';
     els.genreFilter.value = els.yearFilter.value = els.ratingFilter.value = els.searchInput.value = '';
 
-    const data = await fetchFromAPI(`/trending/movie/week?language=en-US`);
-    if (data?.results?.length) {
-        allMovies = data.results;
-        // Fixed: Show trending section and display movies in trending grid
+    // Only load movies that have been uploaded (in downloadLinks)
+    if (window.downloadLinks) {
+        const movieIds = Object.keys(window.downloadLinks).map(id => parseInt(id));
+        
+        if (movieIds.length === 0) {
+            els.trendingGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
+            document.getElementById('trending').style.display = 'block';
+            document.getElementById('movies').style.display = 'none';
+            return;
+        }
+
+        showLoading();
+        
+        try {
+            const promises = movieIds.map(id => fetchFromAPI(`/movie/${id}`));
+            const movies = await Promise.all(promises);
+            const validMovies = movies.filter(m => m !== null);
+            
+            allMovies = validMovies;
+            
+            // Show trending section and display movies in trending grid
+            document.getElementById('trending').style.display = 'block';
+            document.getElementById('movies').style.display = 'none';
+            els.trendingGrid.innerHTML = validMovies.map(createMovieCard).join('');
+
+            // Add click listeners to trending cards
+            els.trendingGrid.querySelectorAll('.movie-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const movieId = card.dataset.movieId;
+                    showMovieDetails(movieId);
+                });
+            });
+            
+            hideLoading();
+        } catch (err) {
+            console.error('Failed to load uploaded movies:', err);
+            hideLoading();
+            showFallbackContent();
+        }
+    } else {
+        els.trendingGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
         document.getElementById('trending').style.display = 'block';
         document.getElementById('movies').style.display = 'none';
-        els.trendingGrid.innerHTML = data.results.map(createMovieCard).join('');
-        
-        // Add click listeners to trending cards
-        els.trendingGrid.querySelectorAll('.movie-card').forEach(card => {
+    }
+}
+
+async function loadAnimations() {
+    if (window.animationData) {
+        const animationList = Object.values(window.animationData).map(animation => ({
+            id: animation.id,
+            title: animation.title,
+            poster_path: animation.poster_path,
+            release_date: "2021-01-01",
+            vote_average: 8.5,
+            media_type: "tv"
+        }));
+
+        document.getElementById('animation').style.display = 'block';
+        document.getElementById('movies').style.display = 'none';
+        document.getElementById('trending').style.display = 'none';
+        els.animationGrid.innerHTML = animationList.map(createMovieCard).join('');
+
+        // Add click listeners to animation cards
+        els.animationGrid.querySelectorAll('.movie-card').forEach(card => {
             card.addEventListener('click', () => {
                 const movieId = card.dataset.movieId;
                 showMovieDetails(movieId);
             });
         });
     } else {
-        showFallbackContent();
+        els.animationGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No animations available</p>';
     }
 }
 
@@ -305,13 +431,75 @@ function showFallbackContent() {
 
 async function searchMovies(query) {
     const data = await fetchFromAPI(`/search/movie?query=${encodeURIComponent(query)}&page=${currentPage}`);
+    
     if (data?.results) {
+        let results = data.results;
+
+        const searchTerm = query.toLowerCase().trim();
+
+        // === Force Real Series to Top of Search Results ===
+        
+        // Game of Thrones
+        if (searchTerm.includes("game of thrones") || searchTerm.includes("got") || searchTerm.includes("thrones")) {
+            const hasRealGOT = results.some(m => m.id === 1399);
+            if (!hasRealGOT) {
+                results.unshift({
+                    id: 1399,
+                    title: "Game of Thrones",
+                    release_date: "2011-04-17",
+                    vote_average: 8.4,
+                    poster_path: "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
+                    overview: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns.",
+                    media_type: "tv"
+                });
+            }
+        }
+
+        // The Boys
+        if (searchTerm.includes("boys") || searchTerm.includes("the boys")) {
+            const hasRealBoys = results.some(m => m.id === 76479);
+            if (!hasRealBoys) {
+                results.unshift({
+                    id: 76479,
+                    title: "The Boys",
+                    release_date: "2019-07-25",
+                    vote_average: 8.4,
+                    poster_path: "/stKGOm8UyhuLPR9sZLjs5AboUyT.jpg",
+                    overview: "A group of vigilantes set out to take down corrupt superheroes with no more than blue-collar grit.",
+                    media_type: "tv"
+                });
+            }
+        }
+
+        // Invincible - now in animationData, so check there
+        if (searchTerm.includes("invincible")) {
+            const hasRealInvincible = results.some(m => m.id === 95557);
+            if (!hasRealInvincible && window.animationData && window.animationData[95557]) {
+                const invincible = window.animationData[95557];
+                results.unshift({
+                    id: invincible.id,
+                    title: invincible.title,
+                    release_date: "2021-03-25",
+                    vote_average: 8.7,
+                    poster_path: invincible.poster_path,
+                    overview: "Mark Grayson is a normal high school senior... except that his father is the most powerful superhero on the planet.",
+                    media_type: "tv"
+                });
+            }
+        }
+
+        // Filter out unwanted fake Game of Thrones entries
+        results = results.filter(movie => {
+            const unwantedIds = [591278, 322484, 492606];
+            return !unwantedIds.includes(movie.id);
+        });
+
         if (currentPage === 1) {
-            allMovies = data.results;
+            allMovies = results;
             displayMovies(allMovies);
         } else {
-            allMovies.push(...data.results);
-            appendMovies(data.results);
+            allMovies.push(...results);
+            appendMovies(results);
         }
     }
 }
@@ -351,10 +539,13 @@ function setViewMode(mode) {
     els.listView.classList.toggle('active', !isGridView);
     if (els.gridViewTrending) els.gridViewTrending.classList.toggle('active', isGridView);
     if (els.listViewTrending) els.listViewTrending.classList.toggle('active', !isGridView);
-    
+    if (els.gridViewAnimation) els.gridViewAnimation.classList.toggle('active', isGridView);
+    if (els.listViewAnimation) els.listViewAnimation.classList.toggle('active', !isGridView);
+
     els.moviesGrid.className = isGridView ? 'movies-grid' : 'movies-list';
     if (els.trendingGrid) els.trendingGrid.className = isGridView ? 'movies-grid' : 'movies-list';
-    
+    if (els.animationGrid) els.animationGrid.className = isGridView ? 'movies-grid' : 'movies-list';
+
     if (allMovies.length) displayMovies(allMovies);
 }
 
@@ -363,10 +554,14 @@ function closeModal() {
     currentMovie = null;
 }
 
-// UPDATED: Now supports series from movies-data.js
+// UPDATED: Now supports series and animations from movies-data.js
 async function showMovieDetails(movieId) {
     if (window.seriesData && window.seriesData[movieId]) {
         displaySeriesModal(window.seriesData[movieId]);
+        return;
+    }
+    if (window.animationData && window.animationData[movieId]) {
+        displaySeriesModal(window.animationData[movieId]);
         return;
     }
     
@@ -374,7 +569,7 @@ async function showMovieDetails(movieId) {
     if (data) displayMovieModal(data);
 }
 
-// NEW: Display series episodes nicely with episode numbers
+// NEW: Display series episodes with dropdown season selector
 function displaySeriesModal(series) {
     currentMovie = series;
 
@@ -386,22 +581,95 @@ function displaySeriesModal(series) {
     document.getElementById('modalYear').textContent = 'Series';
     document.getElementById('modalRuntime').textContent = 'Multiple Episodes';
     document.getElementById('modalRating').textContent = '⭐ N/A';
-    document.getElementById('modalOverview').textContent = 'Select an episode to download';
+    document.getElementById('modalOverview').textContent = 'Select a season to view episodes';
 
-    let episodesHTML = '<h4 style="margin:15px 0 10px;color:#e50914;">Season 1 Episodes</h4>';
+    let seasonsHTML = '<h3 style="margin:15px 0 10px;color:#e50914;">Seasons</h3>';
     
-    if (series.seasons && series.seasons[1]) {
-        episodesHTML += Object.keys(series.seasons[1]).map(epNum => `
-            <div style="background:#1f1f1f;padding:12px;margin:8px 0;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-                <span><strong>Episode ${epNum}</strong></span>
-                <button class="btn btn-secondary" onclick="window.open('${series.seasons[1][epNum]}', '_blank')">Download</button>
+    if (series.seasons) {
+        const seasonNumbers = Object.keys(series.seasons).sort((a, b) => a - b);
+        
+        // Create dropdown selector
+        const seasonOptions = seasonNumbers.map(seasonNum => 
+            `<option value="${seasonNum}">Season ${seasonNum}</option>`
+        ).join('');
+        
+        seasonsHTML += `
+            <div class="season-selector-container">
+                <select id="seasonSelect" class="season-dropdown-select" onchange="displaySeasonEpisodes('${series.title}', this.value)">
+                    <option value="">Select a season...</option>
+                    ${seasonOptions}
+                </select>
             </div>
-        `).join('');
+            <div id="episodesContainer" class="episodes-container"></div>
+        `;
     }
 
-    document.getElementById('modalCast').innerHTML = episodesHTML;
+    document.getElementById('modalCast').innerHTML = seasonsHTML;
+
+    // Hide the general download button for series since episodes have individual download buttons
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.style.display = 'none';
+    }
+
+    // Update watchlist button state
+    const watchlistBtn = document.querySelector('.watchlist-btn');
+    if (watchlistBtn) {
+        const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+        const isInWatchlist = watchlist.includes(series.id);
+        watchlistBtn.innerHTML = isInWatchlist ? '<i class="fas fa-minus"></i> Remove from Watchlist' : '<i class="fas fa-plus"></i> Add to Watchlist';
+    }
 
     els.movieModal.style.display = 'flex';
+}
+
+// Display episodes for selected season
+function displaySeasonEpisodes(seriesTitle, seasonNum) {
+    const episodesContainer = document.getElementById('episodesContainer');
+    
+    if (!seasonNum) {
+        episodesContainer.innerHTML = '';
+        return;
+    }
+    
+    // Find the series/animation data
+    let series = null;
+    for (const id in window.seriesData) {
+        if (window.seriesData[id].title === seriesTitle) {
+            series = window.seriesData[id];
+            break;
+        }
+    }
+    if (!series) {
+        for (const id in window.animationData) {
+            if (window.animationData[id].title === seriesTitle) {
+                series = window.animationData[id];
+                break;
+            }
+        }
+    }
+    
+    if (!series || !series.seasons[seasonNum]) {
+        episodesContainer.innerHTML = '<p style="color:#888;padding:1rem;">No episodes found for this season.</p>';
+        return;
+    }
+    
+    const episodes = series.seasons[seasonNum];
+    const episodesList = Object.keys(episodes).sort((a, b) => a - b).map(epNum => `
+        <div class="episode-item">
+            <span class="episode-number">Episode ${epNum}</span>
+            <button class="episode-download-btn" onclick="window.open('${episodes[epNum]}', '_blank')">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    `).join('');
+    
+    episodesContainer.innerHTML = `
+        <div class="season-episodes-display">
+            <h4 style="margin:1rem 0 0.5rem;color:#e50914;">Season ${seasonNum} Episodes</h4>
+            ${episodesList}
+        </div>
+    `;
 }
 
 function displayMovieModal(movie) {
@@ -435,16 +703,27 @@ function displayMovieModal(movie) {
 
     els.movieModal.style.display = 'flex';
 
+    // Show the download button for movies and route through Download Manager
     const downloadBtn = document.getElementById('downloadBtn');
     if (downloadBtn) {
+        downloadBtn.style.display = 'inline-flex';
         downloadBtn.onclick = () => {
             const movieId = movie.id;
             if (window.downloadLinks && window.downloadLinks[movieId]) {
-                window.open(window.downloadLinks[movieId], '_blank');
+                // Safely opens the standalone download manager in a fresh tab
+                window.open(`download.html?id=${movieId}`, '_blank');
             } else {
-                showNotification('Download not available for this movie');
+                showNotification('Download link hasn\'t been mapped yet.');
             }
         };
+    }
+
+    // Update watchlist button state
+    const watchlistBtn = document.querySelector('.watchlist-btn');
+    if (watchlistBtn) {
+        const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+        const isInWatchlist = watchlist.includes(movie.id);
+        watchlistBtn.innerHTML = isInWatchlist ? '<i class="fas fa-minus"></i> Remove from Watchlist' : '<i class="fas fa-plus"></i> Add to Watchlist';
     }
 }
 
