@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- SEO & Description -->
     <meta name="description" content="CineHub - Discover amazing movies, watch trailers, and download your favorites. Browse popular, trending, and latest movies all in one place.">
+    
+    <!-- Open Graph Tags -->
     <meta property="og:title" content="CineHub - Discover Amazing Movies">
     <meta property="og:description" content="Explore thousands of movies, watch trailers, and build your watchlist.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cinehub-jet-ten.vercel.app">
     <meta property="og:image" content="https://images.unsplash.com/photo-1489599809568-35296c6df5f2?auto=format&fit=crop&w=1200&q=80">
+
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -17,23 +22,26 @@
     <link rel="manifest" href="site.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+
     <title>CineHub - Discover Amazing Movies</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Cloudflare Turnstile Verification Overlay -->
-    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:2rem;">
+    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
         <div style="text-align:center;">
-            <div style="font-size:3rem;color:#e50914;margin-bottom:1rem;"><i class="fas fa-film"></i></div>
-            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;">CineHub</h1>
-            <p style="color:#aaa;font-size:1rem;margin-bottom:2rem;">Please verify you are human to continue</p>
-            <div class="cf-turnstile" data-sitekey="0x4AAAAADfKxmd1ht88G3Ll" data-callback="onTurnstileSuccess" data-theme="dark" data-size="normal"></div>
+            <div style="font-size:3rem;color:#e50914;margin-bottom:1rem;">&#127909;</div>
+            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
+            <p style="color:#aaa;font-size:1rem;margin-bottom:2rem;font-family:system-ui,sans-serif;">Please verify you are human to continue</p>
+            <div id="turnstileWidget"></div>
         </div>
-        <p style="color:#555;font-size:0.8rem;text-align:center;">Protected by Cloudflare Turnstile &nbsp;·&nbsp; CineHub © 2026</p>
+        <p style="color:#555;font-size:0.8rem;text-align:center;font-family:system-ui,sans-serif;">
+            Protected by Cloudflare Turnstile &nbsp;·&nbsp; CineHub © 2026
+        </p>
     </div>
 
     <!-- Header -->
@@ -41,8 +49,9 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <a href="#home" style="text-decoration:none;color:inherit;">
-                        <i class="fas fa-film"></i><span>CineHub</span>
+                    <a href="#home" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-film"></i>
+                        <span>CineHub</span>
                     </a>
                 </div>
                 <div class="nav-menu">
@@ -58,10 +67,14 @@
                 <div class="nav-actions">
                     <div class="search-container">
                         <input type="text" id="searchInput" placeholder="Search movies..." class="search-input">
-                        <button id="searchBtn" class="search-btn"><i class="fas fa-search"></i></button>
+                        <button id="searchBtn" class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="hamburger"><span></span><span></span><span></span></div>
+                <div class="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
         </nav>
     </header>
@@ -134,7 +147,9 @@
                 </div>
             </div>
             <div id="moviesGrid" class="movies-grid"></div>
-            <div id="loadingSpinner" class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+            <div id="loadingSpinner" class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
             <div class="load-more-container">
                 <button id="loadMoreBtn" class="btn btn-secondary">Load More</button>
             </div>
@@ -142,7 +157,7 @@
     </main>
 
     <!-- Animation Section -->
-    <section id="animation" class="movies-section" style="display:none;">
+    <section id="animation" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Animation</h2>
@@ -156,7 +171,7 @@
     </section>
 
     <!-- Trending Section -->
-    <section id="trending" class="movies-section" style="display:none;">
+    <section id="trending" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Trending This Week</h2>
@@ -170,21 +185,21 @@
     </section>
 
     <!-- Watchlist Section -->
-    <section id="watchlist" class="watchlist-section" style="display:none;padding:2.5rem 0 5rem;">
+    <section id="watchlist" class="watchlist-section" style="display: none; padding: 2.5rem 0 5rem;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">My Watchlist</h2>
                 <button id="clearWatchlistBtn" class="btn btn-secondary">Clear Watchlist</button>
             </div>
             <div id="watchlistGrid" class="movies-grid"></div>
-            <p id="watchlistEmpty" class="empty-message" style="display:none;text-align:center;padding:4rem;color:#888;">
+            <p id="watchlistEmpty" class="empty-message" style="display: none; text-align: center; padding: 4rem; color: #888;">
                 Your watchlist is empty. Add movies from the Popular Movies section.
             </p>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="about-section" style="display:none;">
+    <section id="about" class="about-section" style="display: none;">
         <div class="container">
             <h2 class="section-title">About CineHub</h2>
             <p>CineHub is your ultimate destination for discovering amazing movies. We bring together the latest blockbusters, timeless classics, and trending titles all in one place.</p>
@@ -195,7 +210,7 @@
     <!-- Movie Modal -->
     <div id="movieModal" class="modal">
         <div class="modal-content">
-            <span class="close" style="font-size:42px;padding:12px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">×</span>
+            <span class="close" style="font-size: 42px; padding: 12px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;">×</span>
             <div class="movie-details">
                 <div class="movie-poster-container">
                     <img id="modalPoster" src="" alt="Movie Poster" class="movie-poster">
@@ -234,7 +249,9 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <div class="footer-logo"><i class="fas fa-film"></i> CineHub</div>
+                    <div class="footer-logo">
+                        <i class="fas fa-film"></i> CineHub
+                    </div>
                     <p>Your ultimate destination for discovering movies</p>
                 </div>
                 <div class="footer-section">
@@ -273,13 +290,6 @@
     <script src="script.js"></script>
 
     <script>
-        (function() {
-            if (sessionStorage.getItem('cinehub_verified') === '1') {
-                var overlay = document.getElementById('verifyOverlay');
-                if (overlay) overlay.style.display = 'none';
-            }
-        })();
-
         function onTurnstileSuccess(token) {
             sessionStorage.setItem('cinehub_verified', '1');
             var overlay = document.getElementById('verifyOverlay');
@@ -288,6 +298,20 @@
                 overlay.style.opacity = '0';
                 setTimeout(function() { overlay.style.display = 'none'; }, 600);
             }
+        }
+
+        if (sessionStorage.getItem('cinehub_verified') === '1') {
+            document.getElementById('verifyOverlay').style.display = 'none';
+        } else {
+            window.addEventListener('load', function() {
+                if (window.turnstile) {
+                    turnstile.render('#turnstileWidget', {
+                        sitekey: '0x4AAAAADfKxmd1ht88G3Ll',
+                        theme: 'dark',
+                        callback: onTurnstileSuccess,
+                    });
+                }
+            });
         }
     </script>
 
