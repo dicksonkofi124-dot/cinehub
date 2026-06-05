@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineHub - Secure Download Manager</title>
-    <link href="https://googleapis.com" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
             --primary: #e50914;
@@ -120,6 +120,16 @@
             transform: none;
         }
 
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .back-link:hover { color: var(--primary); }
+
         .secure-badge {
             margin-top: 1.5rem;
             font-size: 0.8rem;
@@ -142,21 +152,26 @@
         
         <div class="status-container">
             <div id="statusIcon" class="spinner"><i class="fas fa-spinner"></i></div>
-            <div id="statusText" class="status-text">Connecting to Telegram Unlimited Cloud...</div>
-            <div id="statusSubtext" class="status-subtext">Waking up secure bridge download manager (may take up to 60 seconds).</div>
+            <div id="statusText" class="status-text">Preparing your download link...</div>
+            <div id="statusSubtext" class="status-subtext">Please wait while we verify your file.</div>
         </div>
 
         <button id="actionBtn" class="btn-download" disabled>
-            <i class="fas fa-download"></i> Preparing Stream Link...
+            <i class="fas fa-download"></i> Preparing Download...
         </button>
 
         <div class="secure-badge">
-            <i class="fas fa-shield-alt"></i> Direct cloud stream link verified by CineHub Bridge.
+            <i class="fas fa-shield-alt"></i> Secure download link verified by CineHub.
         </div>
+
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to CineHub</a>
     </div>
 
     <script src="movies-data.js"></script>
     <script>
+        const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+
         const urlParams = new URLSearchParams(window.location.search);
         const movieId = urlParams.get('id');
 
@@ -170,69 +185,58 @@
 
         if (movieId && window.downloadLinks && window.downloadLinks[movieId]) {
             targetDownloadUrl = window.downloadLinks[movieId];
-            titleEl.textContent = "Movie ID: " + movieId;
-        } else {
-            titleEl.textContent = "Error: Link Expired";
-            textEl.textContent = "No valid stream key found.";
-            subtextEl.textContent = "Please return to the homepage and select a valid movie asset.";
-            iconEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #e50914;"></i>';
-            iconEl.className = "";
-        }
 
-        if (targetDownloadUrl) {
-            // FIX 1: Corrected complete endpoint format for TMDB v3 queries
-            const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
-            fetch(`https://themoviedb.org{movieId}?api_key=${API_KEY}`)
+            // Fetch real movie title from TMDB
+            fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.title) {
                         titleEl.textContent = data.title;
+                    } else {
+                        titleEl.textContent = "Your Requested Movie";
                     }
                 })
                 .catch(() => {
                     titleEl.textContent = "Your Requested Movie";
                 });
 
-            // FIX 2: Pointed to your explicit personal Render backend url endpoint
-            const baseRenderUrl = "https://onrender.com";
-            
-            fetch(baseRenderUrl, { mode: 'no-cors' })
-                .then(() => {
-                    iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
-                    iconEl.className = ""; 
-                    textEl.textContent = "Connection Stable!";
-                    subtextEl.textContent = "Your file is ready to stream natively from our high-speed cloud drive.";
-                    
-                    actionBtn.disabled = false;
+            // Ready to download — no fake server ping needed
+            iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
+            iconEl.className = "";
+            textEl.textContent = "Download Ready!";
+            subtextEl.textContent = "Your file is ready. Click the button below to start your download.";
+
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+
+            actionBtn.onclick = () => {
+                actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
+                actionBtn.disabled = true;
+
+                const triggerAnchor = document.createElement('a');
+                triggerAnchor.href = targetDownloadUrl;
+                triggerAnchor.setAttribute('download', '');
+                triggerAnchor.target = '_blank';
+                document.body.appendChild(triggerAnchor);
+                triggerAnchor.click();
+                document.body.removeChild(triggerAnchor);
+
+                setTimeout(() => {
                     actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                    
-                    // FIX 3: Isolated background anchor creation logic to prevent tab freezes
-                    actionBtn.onclick = () => {
-                        actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Stream...';
-                        actionBtn.disabled = true;
-
-                        const triggerAnchor = document.createElement('a');
-                        triggerAnchor.href = targetDownloadUrl;
-                        triggerAnchor.setAttribute('download', '');
-                        document.body.appendChild(triggerAnchor);
-                        triggerAnchor.click();
-                        document.body.removeChild(triggerAnchor);
-
-                        setTimeout(() => {
-                            actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                            actionBtn.disabled = false;
-                        }, 5000);
-                    };
-                })
-                .catch(() => {
-                    textEl.textContent = "Server Optimization Pending";
-                    subtextEl.textContent = "The download pipeline is taking longer to respond. Click below to initialize direct bridge fallback connection links.";
                     actionBtn.disabled = false;
-                    actionBtn.innerHTML = '<i class="fas fa-download"></i> Force Download Stream';
-                    actionBtn.onclick = () => { window.location.href = targetDownloadUrl; };
-                });
+                }, 5000);
+            };
+
+        } else {
+            // No valid movie ID found
+            titleEl.textContent = "Error: Link Expired or Invalid";
+            textEl.textContent = "No valid download link found.";
+            subtextEl.textContent = "Please return to the homepage and select a valid movie.";
+            iconEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #e50914;"></i>';
+            iconEl.className = "";
+            actionBtn.disabled = true;
+            actionBtn.innerHTML = '<i class="fas fa-ban"></i> No Download Available';
         }
     </script>
 </body>
 </html>
-cd "/Users/dickondoko/My Projects/Movie Website"

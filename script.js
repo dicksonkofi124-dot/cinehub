@@ -420,13 +420,9 @@ async function loadAnimations() {
 }
 
 function showFallbackContent() {
-    const fallback = [
-        { id: 27205, title: "Inception", release_date: "2010-07-16", vote_average: 8.4, poster_path: "/9gk7adHYeL0O8xH0v4k6vXjX0.jpg" },
-        { id: 155, title: "The Dark Knight", release_date: "2008-07-18", vote_average: 8.5, poster_path: "/qJ2J5T5qXz0Xz0Xz0Xz0Xz0Xz0Xz0Xz0.jpg" },
-        { id: 272, title: "Batman Begins", release_date: "2005-06-15", vote_average: 7.7, poster_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg" }
-    ];
-    displayMovies(fallback);
-    showNotification('Could not load movies. Showing samples.');
+    els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">Could not load movies. Please check your connection and refresh.</p>';
+    els.loadMoreBtn.style.display = 'none';
+    showNotification('Failed to load movies. Please refresh.');
 }
 
 async function searchMovies(query) {
