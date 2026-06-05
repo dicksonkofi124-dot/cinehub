@@ -1,33 +1,42 @@
 // movies-data.js — Central place for all movie & series download links
+//
+// Bridge server: https://cinehub-bridge.onrender.com
+// To add a new movie from Telegram:
+//   1. Upload to Saved Messages via TDrive
+//   2. Run generate-session.js to get message ID
+//   3. Add to server.js MOVIES registry → git push
+//   4. Add URL here using the same key
 
 const downloadLinks = {
-    // Single Movies (you can add more here later)
-    875828: "https://vdl.np-downloader.com/sdm_downloads/download-peaky-blinders-the-immortal-man-2026/",
+    // ── Telegram Bridge (direct from your cloud) ──────────────────
+    1306368: "https://cinehub-bridge.onrender.com/download/the-rip-2026",
+
+    // ── External links (replace these with bridge URLs as you upload) ──
+    875828:  "https://vdl.np-downloader.com/sdm_downloads/download-peaky-blinders-the-immortal-man-2026/",
     1159559: "https://vdl.np-downloader.com/sdm_downloads/download-scream-7-2026/",
     1171145: "https://vdl.np-downloader.com/sdm_downloads/download-crime-101-2026/",
-    83533: "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
+    83533:   "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
     1265609: "https://vdl.np-downloader.com/sdm_downloads/download-war-machine-2026/",
-    1306368: "https://cinehub-bridge-server.onrender.com/download/home/420"
 };
 
 // Series data
 const seriesData = {
-    // === Game of Thrones (already existed) ===
+    // === Game of Thrones ===
     1399: {
         id: 1399,
         title: "Game of Thrones",
         poster_path: "/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg",
         seasons: {
             1: {
-                1: "https://loadedfiles.org/f478d8be832a2419",
-                2: "https://loadedfiles.org/a1c1d4f99f14f2e1",
-                3: "https://loadedfiles.org/06fd1b340d0bd72d",
-                4: "https://loadedfiles.org/2f46444051a7ddc9",
-                5: "https://loadedfiles.org/3b04f9adab575c5c",
-                6: "https://loadedfiles.org/6a179be9251f3f85",
-                7: "https://loadedfiles.org/bcf875ff609e1683",
-                8: "https://loadedfiles.org/9519736e75fedeac",
-                9: "https://loadedfiles.org/e77927ba1689cf1e",
+                1:  "https://loadedfiles.org/f478d8be832a2419",
+                2:  "https://loadedfiles.org/a1c1d4f99f14f2e1",
+                3:  "https://loadedfiles.org/06fd1b340d0bd72d",
+                4:  "https://loadedfiles.org/2f46444051a7ddc9",
+                5:  "https://loadedfiles.org/3b04f9adab575c5c",
+                6:  "https://loadedfiles.org/6a179be9251f3f85",
+                7:  "https://loadedfiles.org/bcf875ff609e1683",
+                8:  "https://loadedfiles.org/9519736e75fedeac",
+                9:  "https://loadedfiles.org/e77927ba1689cf1e",
                 10: "https://loadedfiles.org/d8de45ea898f107f"
             }
         }
@@ -81,7 +90,9 @@ const seriesData = {
             },
             5: {
                 1: "https://downloadwella.com/13losijzmexq/The.Boys.S05E01.(THENKIRI.COM).mkv.html",
-                2: "https://downloadwella.com/rmffxrhh8b9i/The.Boys.S05E02.(THENKIRI.COM).mkv.html"
+                2: "https://downloadwella.com/rmffxrhh8b9i/The.Boys.S05E02.(THENKIRI.COM).mkv.html",
+                // ── Direct from your Telegram cloud ──
+                8: "https://cinehub-bridge.onrender.com/download/the-boys-s5e8"
             }
         }
     }
@@ -119,7 +130,7 @@ const animationData = {
                 1: "https://downloadwella.com/tl9zhrb1jl90/Invincible.2021.S03E01.(NKIRI.COM).mkv.html",
                 2: "https://downloadwella.com/ux3c9svto76t/Invincible.2021.S03E02.(NKIRI.COM).mkv.html",
                 3: "https://downloadwella.com/d41pw1aq4gi7/Invincible.2021.S03E03.(NKIRI.COM).mkv.html",
-                4: "https://downloadwella.com/0gu5hwv8hn54/Invincible.2021.S04E04.(NKIRI.COM).mkv.html",
+                4: "https://downloadwella.com/0gu5hwv8hn54/Invincible.2021.S03E04.(NKIRI.COM).mkv.html",
                 5: "https://downloadwella.com/lylv60hb9290/Invincible.S03E05.(NKIRI.COM).mkv.html",
                 6: "https://downloadwella.com/kcycgaq3g9wn/Invincible.2021.S03E06.(NKIRI.COM).mkv.html",
                 7: "https://downloadwella.com/nb800tctsps1/Invincible.2021.S03E07.(NKIRI.COM).mkv.html",
@@ -137,7 +148,7 @@ const animationData = {
     }
 };
 
-// Export both
+// Export all
 window.downloadLinks = downloadLinks;
-window.seriesData = seriesData;
+window.seriesData    = seriesData;
 window.animationData = animationData;
