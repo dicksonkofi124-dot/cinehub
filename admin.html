@@ -586,16 +586,20 @@ let state = {
 const DEFAULT_PASS = 'CineHub@Admin2026';
 
 function doLogin() {
-    const pass = document.getElementById('adminPassword').value;
+    const pass = document.getElementById('adminPassword').value.trim();
+    if (!pass) return;
     const stored = localStorage.getItem('cinehub_admin_pass') || DEFAULT_PASS;
     if (pass === stored) {
-        localStorage.setItem('cinehub_admin_session', Date.now());
+        localStorage.setItem('cinehub_admin_session', Date.now().toString());
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('adminApp').style.display = 'block';
+        document.getElementById('loginError').style.display = 'none';
         initAdmin();
     } else {
         document.getElementById('loginError').style.display = 'block';
+        document.getElementById('loginError').textContent = '❌ Incorrect password. Try: CineHub@Admin2026';
         document.getElementById('adminPassword').value = '';
+        document.getElementById('adminPassword').focus();
     }
 }
 
@@ -605,12 +609,16 @@ function doLogout() {
 }
 
 function checkSession() {
-    const session = localStorage.getItem('cinehub_admin_session');
-    if (session && Date.now() - parseInt(session) < 8 * 60 * 60 * 1000) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('adminApp').style.display = 'block';
-        initAdmin();
-    }
+    try {
+        const session = localStorage.getItem('cinehub_admin_session');
+        if (session && Date.now() - parseInt(session) < 8 * 60 * 60 * 1000) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminApp').style.display = 'block';
+            initAdmin();
+            return true;
+        }
+    } catch(e) {}
+    return false;
 }
 
 function changePassword() {
