@@ -183,8 +183,11 @@
 
         let targetDownloadUrl = "";
 
-        if (movieId && window.downloadLinks && window.downloadLinks[movieId]) {
-            targetDownloadUrl = window.downloadLinks[movieId];
+        // Try both string and number keys since JS objects can differ
+        const dlKey = window.downloadLinks && (window.downloadLinks[movieId] || window.downloadLinks[parseInt(movieId)]);
+
+        if (movieId && dlKey) {
+            targetDownloadUrl = dlKey;
 
             // Fetch real movie title from TMDB
             fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`)
