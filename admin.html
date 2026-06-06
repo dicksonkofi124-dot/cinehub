@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e50914;
+            --primary-hover: #b20710;
+            --bg: #0a0a0a;
+            --card: #111;
+            --card2: #181818;
+            --border: #2a2a2a;
+            --text: #e0e0e0;
+            --muted: #888;
+            --green: #2ecc71;
+            --blue: #3498db;
+            --yellow: #f39c12;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+        /* ── LOGIN ── */
+        #loginScreen {
+            position:fixed; inset:0; background:var(--bg); z-index:9999;
+            display:flex; align-items:center; justify-content:center; padding:2rem;
+        }
+        .login-box {
+            background:var(--card); border:1px solid var(--border); border-radius:16px;
+            padding:3rem; max-width:420px; width:100%; text-align:center;
+        }
+        .login-logo { font-size:2.5rem; color:var(--primary); margin-bottom:1rem; }
+        .login-title { font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; }
+        .login-sub { color:var(--muted); font-size:0.9rem; margin-bottom:2rem; }
+        .login-input {
+            width:100%; padding:0.9rem 1.2rem; background:#1a1a1a; border:1px solid var(--border);
+            border-radius:8px; color:white; font-size:1rem; margin-bottom:1rem; outline:none;
+            transition:border-color 0.2s;
+        }
+        .login-input:focus { border-color:var(--primary); }
+        .login-btn {
+            width:100%; padding:1rem; background:var(--primary); color:white; border:none;
+            border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; transition:0.2s;
+        }
+        .login-btn:hover { background:var(--primary-hover); }
+        .login-error { color:#e74c3c; font-size:0.85rem; margin-top:0.75rem; display:none; }
+
+        /* ── LAYOUT ── */
+        #adminApp { display:none; }
+        .sidebar {
+            position:fixed; left:0; top:0; bottom:0; width:240px;
+            background:var(--card); border-right:1px solid var(--border);
+            display:flex; flex-direction:column; z-index:100;
+        }
+        .sidebar-logo {
+            padding:1.5rem; font-size:1.3rem; font-weight:800; color:var(--primary);
+            border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.5rem;
+        }
+        .sidebar-nav { flex:1; padding:1rem 0; overflow-y:auto; }
+        .nav-item {
+            display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.5rem;
+            color:var(--muted); cursor:pointer; transition:all 0.2s; font-size:0.9rem;
+            border-left:3px solid transparent;
+        }
+        .nav-item:hover { color:white; background:#1a1a1a; }
+        .nav-item.active { color:var(--primary); background:#1a1a1a; border-left-color:var(--primary); font-weight:600; }
+        .nav-item i { width:16px; text-align:center; }
+        .sidebar-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); }
+        .logout-btn {
+            width:100%; padding:0.7rem; background:transparent; border:1px solid #333;
+            color:var(--muted); border-radius:8px; cursor:pointer; font-size:0.85rem; transition:0.2s;
+        }
+        .logout-btn:hover { border-color:var(--primary); color:var(--primary); }
+
+        .main-content { margin-left:240px; padding:2rem; min-height:100vh; }
+        .page { display:none; }
+        .page.active { display:block; }
+
+        /* ── HEADER ── */
+        .page-header { margin-bottom:2rem; }
+        .page-title { font-size:1.8rem; font-weight:800; margin-bottom:0.25rem; }
+        .page-sub { color:var(--muted); font-size:0.9rem; }
+
+        /* ── STATS CARDS ── */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:2rem; }
+        .stat-card {
+            background:var(--card); border:1px solid var(--border); border-radius:12px;
+            padding:1.5rem; display:flex; align-items:center; gap:1rem;
+        }
+        .stat-icon { font-size:1.8rem; width:50px; height:50px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+        .stat-icon.red { background:rgba(229,9,20,0.15); color:var(--primary); }
+        .stat-icon.green { background:rgba(46,204,113,0.15); color:var(--green); }
+        .stat-icon.blue { background:rgba(52,152,219,0.15); color:var(--blue); }
+        .stat-icon.yellow { background:rgba(243,156,18,0.15); color:var(--yellow); }
+        .stat-info { flex:1; }
+        .stat-num { font-size:1.8rem; font-weight:800; line-height:1; }
+        .stat-label { color:var(--muted); font-size:0.82rem; margin-top:0.25rem; }
+
+        /* ── CARDS ── */
+        .card {
+            background:var(--card); border:1px solid var(--border); border-radius:12px;
+            padding:1.5rem; margin-bottom:1.5rem;
+        }
+        .card-title { font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem; }
+
+        /* ── FORMS ── */
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        .form-group { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
+        .form-group.full { grid-column:1/-1; }
+        label { font-size:0.85rem; color:var(--muted); font-weight:500; }
+        input, select, textarea {
+            padding:0.8rem 1rem; background:#1a1a1a; border:1px solid var(--border);
+            border-radius:8px; color:white; font-size:0.9rem; outline:none;
+            transition:border-color 0.2s; font-family:'Inter',sans-serif;
+        }
+        input:focus, select:focus, textarea:focus { border-color:var(--primary); }
+        textarea { resize:vertical; min-height:80px; }
+        select option { background:#1a1a1a; }
+
+        /* ── BUTTONS ── */
+        .btn { padding:0.75rem 1.5rem; border-radius:8px; font-weight:600; cursor:pointer; border:none; font-size:0.9rem; transition:0.2s; display:inline-flex; align-items:center; gap:0.5rem; }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-primary:hover { background:var(--primary-hover); transform:translateY(-1px); }
+        .btn-secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+        .btn-secondary:hover { border-color:#555; background:#1a1a1a; }
+        .btn-danger { background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
+        .btn-danger:hover { background:rgba(231,76,60,0.25); }
+        .btn-success { background:rgba(46,204,113,0.15); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
+        .btn-success:hover { background:rgba(46,204,113,0.25); }
+        .btn-sm { padding:0.45rem 0.9rem; font-size:0.8rem; }
+
+        /* ── TABLE ── */
+        .table-wrap { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+        th { text-align:left; padding:0.75rem 1rem; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; }
+        td { padding:0.85rem 1rem; border-bottom:1px solid #1a1a1a; vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:#141414; }
+        .badge { display:inline-block; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.72rem; font-weight:600; }
+        .badge-movie { background:rgba(229,9,20,0.15); color:var(--primary); }
+        .badge-series { background:rgba(52,152,219,0.15); color:var(--blue); }
+        .badge-animation { background:rgba(46,204,113,0.15); color:var(--green); }
+        .badge-telegram { background:rgba(243,156,18,0.15); color:var(--yellow); }
+        .badge-external { background:#1a1a1a; color:var(--muted); }
+
+        /* ── TMDB SEARCH ── */
+        .tmdb-results { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:0.75rem; margin-top:1rem; max-height:350px; overflow-y:auto; }
+        .tmdb-card {
+            background:var(--card2); border:2px solid transparent; border-radius:8px;
+            overflow:hidden; cursor:pointer; transition:0.2s;
+        }
+        .tmdb-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+        .tmdb-card.selected { border-color:var(--green); }
+        .tmdb-card img { width:100%; aspect-ratio:2/3; object-fit:cover; }
+        .tmdb-card-info { padding:0.4rem; }
+        .tmdb-card-title { font-size:0.72rem; font-weight:600; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+        .tmdb-card-year { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+
+        /* ── DEPLOY STATUS ── */
+        #deployStatus {
+            position:fixed; top:20px; right:20px; z-index:9999;
+            background:var(--card); border:1px solid var(--border); border-radius:10px;
+            padding:1rem 1.5rem; min-width:280px; display:none;
+            box-shadow:0 8px 30px rgba(0,0,0,0.5);
+        }
+        .deploy-title { font-weight:700; margin-bottom:0.25rem; }
+        .deploy-sub { font-size:0.82rem; color:var(--muted); }
+        .deploy-bar { height:4px; background:#222; border-radius:2px; margin-top:0.75rem; overflow:hidden; }
+        .deploy-fill { height:100%; background:var(--primary); border-radius:2px; transition:width 1s ease; }
+
+        /* ── ACTIVITY LOG ── */
+        .log-item { display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid #1a1a1a; }
+        .log-item:last-child { border-bottom:none; }
+        .log-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; }
+        .log-icon.add { background:rgba(46,204,113,0.15); color:var(--green); }
+        .log-icon.delete { background:rgba(231,76,60,0.15); color:#e74c3c; }
+        .log-icon.deploy { background:rgba(229,9,20,0.15); color:var(--primary); }
+        .log-text { flex:1; font-size:0.85rem; }
+        .log-time { font-size:0.75rem; color:var(--muted); }
+
+        /* ── TABS ── */
+        .tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; border-bottom:1px solid var(--border); padding-bottom:0; }
+        .tab { padding:0.6rem 1.2rem; cursor:pointer; color:var(--muted); font-size:0.9rem; border-bottom:2px solid transparent; transition:0.2s; margin-bottom:-1px; }
+        .tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+
+        /* ── MISC ── */
+        .empty-state { text-align:center; padding:3rem; color:var(--muted); }
+        .empty-state i { font-size:3rem; margin-bottom:1rem; opacity:0.4; display:block; }
+        .search-bar { display:flex; gap:0.75rem; margin-bottom:1.5rem; }
+        .search-bar input { flex:1; }
+        .token-input-wrap { position:relative; }
+        .token-input-wrap input { padding-right:3rem; }
+        .toggle-visibility { position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.9rem; }
+        .section-divider { border:none; border-top:1px solid var(--border); margin:1.5rem 0; }
+        .info-box { background:rgba(52,152,219,0.1); border:1px solid rgba(52,152,219,0.3); border-radius:8px; padding:1rem; font-size:0.85rem; color:#7ec8e3; margin-bottom:1rem; }
+        .warning-box { background:rgba(243,156,18,0.1); border:1px solid rgba(243,156,18,0.3); border-radius:8px; padding:1rem; font-size:0.85rem; color:#f7c56a; margin-bottom:1rem; }
+
+        @media(max-width:768px) {
+            .sidebar { width:60px; }
+            .sidebar-logo span, .nav-item span, .sidebar-footer { display:none; }
+            .main-content { margin-left:60px; padding:1rem; }
+            .form-grid { grid-template-columns:1fr; }
+            .stats-grid { grid-template-columns:1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="loginScreen">
+    <div class="login-box">
+        <div class="login-logo"><i class="fas fa-film"></i></div>
+        <h1 class="login-title">CineHub Admin</h1>
+        <p class="login-sub">Restricted access — admins only</p>
+        <input type="password" id="adminPassword" class="login-input" placeholder="Enter admin password" onkeypress="if(event.key==='Enter')doLogin()">
+        <button class="login-btn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <p class="login-error" id="loginError">❌ Incorrect password. Access denied.</p>
+    </div>
+</div>
+
+<!-- ═══════════════════ DEPLOY STATUS ═══════════════════ -->
+<div id="deployStatus">
+    <div class="deploy-title" id="deployTitle">🚀 Deploying to CineHub...</div>
+    <div class="deploy-sub" id="deploySub">Updating movies-data.js on GitHub</div>
+    <div class="deploy-bar"><div class="deploy-fill" id="deployFill" style="width:0%"></div></div>
+</div>
+
+<!-- ═══════════════════ ADMIN APP ═══════════════════ -->
+<div id="adminApp">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-film"></i>
+            <span>CineHub Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-item active" onclick="showPage('dashboard')">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="showPage('movies')">
+                <i class="fas fa-film"></i><span>Movies</span>
+            </div>
+            <div class="nav-item" onclick="showPage('series')">
+                <i class="fas fa-tv"></i><span>Series</span>
+            </div>
+            <div class="nav-item" onclick="showPage('animation')">
+                <i class="fas fa-dragon"></i><span>Animation</span>
+            </div>
+            <div class="nav-item" onclick="showPage('add')">
+                <i class="fas fa-plus-circle"></i><span>Add Content</span>
+            </div>
+            <div class="nav-item" onclick="showPage('downloads')">
+                <i class="fas fa-download"></i><span>Downloads</span>
+            </div>
+            <div class="nav-item" onclick="showPage('settings')">
+                <i class="fas fa-cog"></i><span>Settings</span>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- ── DASHBOARD ── -->
+        <div id="page-dashboard" class="page active">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-sub">Welcome back, Admin. Here's your CineHub overview.</p>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-history" style="color:var(--primary)"></i> Recent Activity</div>
+                    <div id="activityLog"><div class="empty-state"><i class="fas fa-history"></i>No activity yet</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-fire" style="color:var(--yellow)"></i> Most Downloaded</div>
+                    <div id="topDownloads"><div class="empty-state"><i class="fas fa-download"></i>No download data yet</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── MOVIES ── -->
+        <div id="page-movies" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Movies</h1>
+                <p class="page-sub">All single movies with download links</p>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="movieSearch" placeholder="Search movies..." oninput="filterTable('moviesTable', this.value)">
+                <button class="btn btn-primary" onclick="showPage('add')"><i class="fas fa-plus"></i> Add Movie</button>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table id="moviesTable">
+                        <thead><tr>
+                            <th>Poster</th><th>Title</th><th>TMDB ID</th>
+                            <th>Type</th><th>Downloads</th><th>Actions</th>
+                        </tr></thead>
+                        <tbody id="moviesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SERIES ── -->
+        <div id="page-series" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Series</h1>
+                <p class="page-sub">TV series with episode download links</p>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="seriesSearch" placeholder="Search series..." oninput="filterTable('seriesTable', this.value)">
+                <button class="btn btn-primary" onclick="showAddForm('series')"><i class="fas fa-plus"></i> Add Series</button>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table id="seriesTable">
+                        <thead><tr><th>Poster</th><th>Title</th><th>TMDB ID</th><th>Seasons</th><th>Episodes</th><th>Actions</th></tr></thead>
+                        <tbody id="seriesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ANIMATION ── -->
+        <div id="page-animation" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Animation</h1>
+                <p class="page-sub">Animated series with episode download links</p>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="animSearch" placeholder="Search animation..." oninput="filterTable('animTable', this.value)">
+                <button class="btn btn-primary" onclick="showAddForm('animation')"><i class="fas fa-plus"></i> Add Animation</button>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table id="animTable">
+                        <thead><tr><th>Poster</th><th>Title</th><th>TMDB ID</th><th>Seasons</th><th>Episodes</th><th>Actions</th></tr></thead>
+                        <tbody id="animTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ADD CONTENT ── -->
+        <div id="page-add" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Add Content</h1>
+                <p class="page-sub">Search TMDB and add movies or series to CineHub</p>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('movie')">🎬 Movie</div>
+                <div class="tab" onclick="switchTab('series')">📺 Series</div>
+                <div class="tab" onclick="switchTab('animation')">🐉 Animation</div>
+            </div>
+
+            <!-- MOVIE TAB -->
+            <div id="tab-movie" class="tab-content active">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-search" style="color:var(--blue)"></i> Search TMDB</div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <input type="text" id="tmdbSearchMovie" placeholder="Search for a movie..." style="flex:1" onkeypress="if(event.key==='Enter')searchTMDB('movie')">
+                        <button class="btn btn-primary" onclick="searchTMDB('movie')"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div id="tmdbResultsMovie" class="tmdb-results"></div>
+                </div>
+                <div class="card" id="movieFormCard" style="display:none">
+                    <div class="card-title"><i class="fas fa-film" style="color:var(--primary)"></i> Movie Details</div>
+                    <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem;">
+                        <img id="selectedMoviePoster" src="" style="width:100px;border-radius:8px;" alt="">
+                        <div>
+                            <div style="font-size:1.2rem;font-weight:700;" id="selectedMovieTitle"></div>
+                            <div style="color:var(--muted);font-size:0.85rem;margin-top:0.25rem;" id="selectedMovieYear"></div>
+                            <div style="color:var(--muted);font-size:0.85rem;" id="selectedMovieId"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Download URL *</label>
+                        <input type="url" id="movieDownloadUrl" placeholder="https://cinehub-bridge.onrender.com/download/movie-key  OR  https://external-link.com/...">
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i> For Telegram bridge files: use <code>https://cinehub-bridge.onrender.com/download/your-movie-key</code><br>
+                        For external links: paste the direct download URL.
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <button class="btn btn-primary" onclick="saveMovie()"><i class="fas fa-save"></i> Save & Deploy</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('movieFormCard').style.display='none'">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERIES TAB -->
+            <div id="tab-series" class="tab-content">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-search" style="color:var(--blue)"></i> Search TMDB</div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <input type="text" id="tmdbSearchSeries" placeholder="Search for a TV series..." style="flex:1" onkeypress="if(event.key==='Enter')searchTMDB('series')">
+                        <button class="btn btn-primary" onclick="searchTMDB('series')"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div id="tmdbResultsSeries" class="tmdb-results"></div>
+                </div>
+                <div class="card" id="seriesFormCard" style="display:none">
+                    <div class="card-title"><i class="fas fa-tv" style="color:var(--blue)"></i> Series Episodes</div>
+                    <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem;">
+                        <img id="selectedSeriesPoster" src="" style="width:80px;border-radius:8px;" alt="">
+                        <div>
+                            <div style="font-size:1.1rem;font-weight:700;" id="selectedSeriesTitle"></div>
+                            <div style="color:var(--muted);font-size:0.85rem;margin-top:0.25rem;" id="selectedSeriesId"></div>
+                        </div>
+                    </div>
+                    <div id="seriesEpisodesBuilder">
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;align-items:flex-end;">
+                            <div class="form-group" style="margin:0;flex:0 0 120px;">
+                                <label>Season #</label>
+                                <input type="number" id="newSeasonNum" value="1" min="1">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:0 0 120px;">
+                                <label>Episode #</label>
+                                <input type="number" id="newEpNum" value="1" min="1">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;">
+                                <label>Download URL</label>
+                                <input type="url" id="newEpUrl" placeholder="https://...">
+                            </div>
+                            <button class="btn btn-success" onclick="addEpisodeRow('series')" style="margin-bottom:0;"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                        <div id="episodeRowsSeries"></div>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                        <button class="btn btn-primary" onclick="saveSeries('series')"><i class="fas fa-save"></i> Save & Deploy</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('seriesFormCard').style.display='none'">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANIMATION TAB -->
+            <div id="tab-animation" class="tab-content">
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-search" style="color:var(--blue)"></i> Search TMDB</div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <input type="text" id="tmdbSearchAnim" placeholder="Search for an animated series..." style="flex:1" onkeypress="if(event.key==='Enter')searchTMDB('animation')">
+                        <button class="btn btn-primary" onclick="searchTMDB('animation')"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div id="tmdbResultsAnim" class="tmdb-results"></div>
+                </div>
+                <div class="card" id="animFormCard" style="display:none">
+                    <div class="card-title"><i class="fas fa-dragon" style="color:var(--green)"></i> Animation Episodes</div>
+                    <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem;">
+                        <img id="selectedAnimPoster" src="" style="width:80px;border-radius:8px;" alt="">
+                        <div>
+                            <div style="font-size:1.1rem;font-weight:700;" id="selectedAnimTitle"></div>
+                            <div style="color:var(--muted);font-size:0.85rem;margin-top:0.25rem;" id="selectedAnimId"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;align-items:flex-end;">
+                            <div class="form-group" style="margin:0;flex:0 0 120px;">
+                                <label>Season #</label>
+                                <input type="number" id="newSeasonNumAnim" value="1" min="1">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:0 0 120px;">
+                                <label>Episode #</label>
+                                <input type="number" id="newEpNumAnim" value="1" min="1">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;">
+                                <label>Download URL</label>
+                                <input type="url" id="newEpUrlAnim" placeholder="https://...">
+                            </div>
+                            <button class="btn btn-success" onclick="addEpisodeRow('animation')"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                        <div id="episodeRowsAnimation"></div>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+                        <button class="btn btn-primary" onclick="saveSeries('animation')"><i class="fas fa-save"></i> Save & Deploy</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('animFormCard').style.display='none'">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── DOWNLOADS ── -->
+        <div id="page-downloads" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Download Analytics</h1>
+                <p class="page-sub">Track how many times each movie was downloaded</p>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Title</th><th>Type</th><th>Downloads</th><th>Last Download</th></tr></thead>
+                        <tbody id="downloadsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SETTINGS ── -->
+        <div id="page-settings" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-sub">Configure admin panel and GitHub integration</p>
+            </div>
+            <div class="card">
+                <div class="card-title"><i class="fab fa-github" style="color:white"></i> GitHub Integration</div>
+                <div class="info-box">These settings allow the admin panel to directly update <code>movies-data.js</code> on your GitHub repo, triggering automatic Vercel deployment.</div>
+                <div class="form-group">
+                    <label>GitHub Personal Access Token</label>
+                    <div class="token-input-wrap">
+                        <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        <button class="toggle-visibility" onclick="toggleTokenVisibility()"><i class="fas fa-eye" id="tokenEyeIcon"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>GitHub Username</label>
+                    <input type="text" id="githubUser" placeholder="dicksonkofi124-dot">
+                </div>
+                <div class="form-group">
+                    <label>Repository Name</label>
+                    <input type="text" id="githubRepo" placeholder="cinehub">
+                </div>
+                <div class="form-group">
+                    <label>Branch</label>
+                    <input type="text" id="githubBranch" placeholder="main">
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+                <button class="btn btn-secondary" style="margin-left:0.5rem" onclick="testGitHub()"><i class="fas fa-plug"></i> Test Connection</button>
+            </div>
+            <div class="card">
+                <div class="card-title"><i class="fas fa-lock" style="color:var(--yellow)"></i> Change Admin Password</div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+            </div>
+            <div class="card">
+                <div class="card-title"><i class="fas fa-robot" style="color:var(--blue)"></i> Telegram Bridge</div>
+                <div class="form-group">
+                    <label>Bridge Server URL</label>
+                    <input type="text" id="bridgeUrl" value="https://cinehub-bridge.onrender.com" placeholder="https://your-bridge.onrender.com">
+                </div>
+                <button class="btn btn-secondary" onclick="testBridge()"><i class="fas fa-plug"></i> Test Bridge Connection</button>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const TMDB_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+const IMG = 'https://image.tmdb.org/t/p/w200';
+
+let state = {
+    downloadLinks: {},
+    seriesData: {},
+    animationData: {},
+    episodes: { series: {}, animation: {} },
+    selectedMovie: null,
+    selectedSeries: null,
+    selectedAnim: null,
+    currentTab: 'movie',
+};
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+const DEFAULT_PASS = 'CineHub@Admin2026';
+
+function doLogin() {
+    const pass = document.getElementById('adminPassword').value;
+    const stored = localStorage.getItem('cinehub_admin_pass') || DEFAULT_PASS;
+    if (pass === stored) {
+        localStorage.setItem('cinehub_admin_session', Date.now());
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        initAdmin();
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('adminPassword').value = '';
+    }
+}
+
+function doLogout() {
+    localStorage.removeItem('cinehub_admin_session');
+    location.reload();
+}
+
+function checkSession() {
+    const session = localStorage.getItem('cinehub_admin_session');
+    if (session && Date.now() - parseInt(session) < 8 * 60 * 60 * 1000) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        initAdmin();
+    }
+}
+
+function changePassword() {
+    const np = document.getElementById('newPassword').value;
+    const cp = document.getElementById('confirmPassword').value;
+    if (!np) return showToast('Enter a new password', 'error');
+    if (np !== cp) return showToast('Passwords do not match', 'error');
+    if (np.length < 8) return showToast('Password must be at least 8 characters', 'error');
+    localStorage.setItem('cinehub_admin_pass', np);
+    showToast('Password updated successfully ✓', 'success');
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function initAdmin() {
+    loadSettings();
+    loadDataFromGitHub();
+    renderDashboard();
+    renderDownloads();
+}
+
+function loadSettings() {
+    const s = JSON.parse(localStorage.getItem('cinehub_admin_settings') || '{}');
+    if (s.token) document.getElementById('githubToken').value = s.token;
+    if (s.user) document.getElementById('githubUser').value = s.user;
+    if (s.repo) document.getElementById('githubRepo').value = s.repo;
+    if (s.branch) document.getElementById('githubBranch').value = s.branch;
+    if (s.bridge) document.getElementById('bridgeUrl').value = s.bridge;
+}
+
+function saveSettings() {
+    const s = {
+        token: document.getElementById('githubToken').value,
+        user: document.getElementById('githubUser').value,
+        repo: document.getElementById('githubRepo').value,
+        branch: document.getElementById('githubBranch').value,
+        bridge: document.getElementById('bridgeUrl').value,
+    };
+    localStorage.setItem('cinehub_admin_settings', JSON.stringify(s));
+    showToast('Settings saved ✓', 'success');
+}
+
+function getSettings() {
+    return JSON.parse(localStorage.getItem('cinehub_admin_settings') || '{}');
+}
+
+// ══════════════════════════════════════════
+//  GITHUB API
+// ══════════════════════════════════════════
+async function loadDataFromGitHub() {
+    const s = getSettings();
+    if (!s.token || !s.user || !s.repo) {
+        // Load from localStorage fallback
+        const cached = localStorage.getItem('cinehub_movies_cache');
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                state.downloadLinks = parsed.downloadLinks || {};
+                state.seriesData = parsed.seriesData || {};
+                state.animationData = parsed.animationData || {};
+                renderAllTables();
+                renderDashboard();
+            } catch(e) {}
+        }
+        showToast('Configure GitHub settings to sync live data', 'warning');
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${s.user}/${s.repo}/contents/movies-data.js?ref=${s.branch || 'main'}`, {
+            headers: { 'Authorization': `token ${s.token}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!res.ok) throw new Error('GitHub fetch failed');
+        const data = await res.json();
+        const content = atob(data.content.replace(/\n/g, ''));
+        parseMoviesData(content);
+        localStorage.setItem('cinehub_sha', data.sha);
+        showToast('Live data loaded from GitHub ✓', 'success');
+    } catch(e) {
+        showToast('Could not load from GitHub: ' + e.message, 'error');
+    }
+}
+
+function parseMoviesData(content) {
+    try {
+        // Extract downloadLinks
+        const dlMatch = content.match(/const downloadLinks\s*=\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}/s);
+        if (dlMatch) {
+            const cleaned = dlMatch[1].replace(/\/\/.*/g, '').trim();
+            const pairs = cleaned.match(/(\d+)\s*:\s*["']([^"']+)["']/g) || [];
+            state.downloadLinks = {};
+            pairs.forEach(p => {
+                const m = p.match(/(\d+)\s*:\s*["']([^"']+)["']/);
+                if (m) state.downloadLinks[m[1]] = m[2];
+            });
+        }
+
+        // Extract seriesData - eval approach for nested objects
+        const seriesMatch = content.match(/const seriesData\s*=\s*(\{[\s\S]*?\n\})\s*;/);
+        if (seriesMatch) {
+            try {
+                const evalStr = seriesMatch[1].replace(/\/\/.*/g, '');
+                state.seriesData = Function('"use strict"; return ' + evalStr)();
+            } catch(e) { state.seriesData = {}; }
+        }
+
+        const animMatch = content.match(/const animationData\s*=\s*(\{[\s\S]*?\n\})\s*;/);
+        if (animMatch) {
+            try {
+                const evalStr = animMatch[1].replace(/\/\/.*/g, '');
+                state.animationData = Function('"use strict"; return ' + evalStr)();
+            } catch(e) { state.animationData = {}; }
+        }
+
+        localStorage.setItem('cinehub_movies_cache', JSON.stringify({
+            downloadLinks: state.downloadLinks,
+            seriesData: state.seriesData,
+            animationData: state.animationData,
+        }));
+
+        renderAllTables();
+        renderDashboard();
+    } catch(e) {
+        console.error('Parse error:', e);
+        showToast('Error parsing movies-data.js', 'error');
+    }
+}
+
+async function deployToGitHub(newContent, description) {
+    const s = getSettings();
+    if (!s.token || !s.user || !s.repo) {
+        showToast('Configure GitHub settings first', 'error');
+        showPage('settings');
+        return false;
+    }
+
+    showDeployStatus('Connecting to GitHub...', 10);
+
+    try {
+        // Get current SHA
+        const getRes = await fetch(`https://api.github.com/repos/${s.user}/${s.repo}/contents/movies-data.js?ref=${s.branch || 'main'}`, {
+            headers: { 'Authorization': `token ${s.token}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        const getData = await getRes.json();
+        const sha = getData.sha;
+
+        showDeployStatus('Uploading updated file...', 50);
+
+        // Push updated file
+        const pushRes = await fetch(`https://api.github.com/repos/${s.user}/${s.repo}/contents/movies-data.js`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${s.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: description || 'CineHub Admin: Update movies-data.js',
+                content: btoa(unescape(encodeURIComponent(newContent))),
+                sha: sha,
+                branch: s.branch || 'main',
+            }),
+        });
+
+        if (!pushRes.ok) {
+            const err = await pushRes.json();
+            throw new Error(err.message || 'Push failed');
+        }
+
+        showDeployStatus('Triggering Vercel deployment...', 80);
+        addActivityLog('deploy', `Deployed: ${description}`);
+
+        setTimeout(() => {
+            showDeployStatus('✅ Deployed successfully!', 100, true);
+            localStorage.setItem('cinehub_sha', (await pushRes.json().catch(() => ({}))).content?.sha || sha);
+        }, 1500);
+
+        return true;
+    } catch(e) {
+        hideDeployStatus();
+        showToast('Deploy failed: ' + e.message, 'error');
+        return false;
+    }
+}
+
+// ══════════════════════════════════════════
+//  GENERATE movies-data.js
+// ══════════════════════════════════════════
+function generateMoviesData() {
+    const dl = state.downloadLinks;
+    const series = state.seriesData;
+    const anim = state.animationData;
+
+    let out = `// movies-data.js — Managed by CineHub Admin Panel\n// Last updated: ${new Date().toLocaleString()}\n\n`;
+
+    // downloadLinks
+    out += `const downloadLinks = {\n`;
+    Object.entries(dl).forEach(([id, url]) => {
+        const isBridge = url.includes('onrender.com') || url.includes('cinehub-bridge');
+        out += `    ${id}: "${url}", ${isBridge ? '// Telegram Bridge' : ''}\n`;
+    });
+    out += `};\n\n`;
+
+    // seriesData
+    out += `const seriesData = {\n`;
+    Object.entries(series).forEach(([id, s]) => {
+        out += `    ${id}: {\n`;
+        out += `        id: ${s.id},\n`;
+        out += `        title: "${s.title}",\n`;
+        out += `        poster_path: "${s.poster_path || ''}",\n`;
+        out += `        seasons: {\n`;
+        Object.entries(s.seasons || {}).forEach(([season, eps]) => {
+            out += `            ${season}: {\n`;
+            Object.entries(eps).forEach(([ep, url]) => {
+                out += `                ${ep}: "${url}",\n`;
+            });
+            out += `            },\n`;
+        });
+        out += `        }\n`;
+        out += `    },\n`;
+    });
+    out += `};\n\n`;
+
+    // animationData
+    out += `const animationData = {\n`;
+    Object.entries(anim).forEach(([id, a]) => {
+        out += `    ${id}: {\n`;
+        out += `        id: ${a.id},\n`;
+        out += `        title: "${a.title}",\n`;
+        out += `        poster_path: "${a.poster_path || ''}",\n`;
+        out += `        seasons: {\n`;
+        Object.entries(a.seasons || {}).forEach(([season, eps]) => {
+            out += `            ${season}: {\n`;
+            Object.entries(eps).forEach(([ep, url]) => {
+                out += `                ${ep}: "${url}",\n`;
+            });
+            out += `            },\n`;
+        });
+        out += `        }\n`;
+        out += `    },\n`;
+    });
+    out += `};\n\n`;
+
+    out += `window.downloadLinks = downloadLinks;\nwindow.seriesData = seriesData;\nwindow.animationData = animationData;\n`;
+    return out;
+}
+
+// ══════════════════════════════════════════
+//  TMDB SEARCH
+// ══════════════════════════════════════════
+async function searchTMDB(type) {
+    const inputId = type === 'movie' ? 'tmdbSearchMovie' : type === 'series' ? 'tmdbSearchSeries' : 'tmdbSearchAnim';
+    const resultsId = type === 'movie' ? 'tmdbResultsMovie' : type === 'series' ? 'tmdbResultsSeries' : 'tmdbResultsAnim';
+    const query = document.getElementById(inputId).value.trim();
+    if (!query) return;
+
+    const resultsEl = document.getElementById(resultsId);
+    resultsEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i> Searching TMDB...</div>';
+
+    const mediaType = type === 'movie' ? 'movie' : 'tv';
+    try {
+        const res = await fetch(`${TMDB_BASE}/search/${mediaType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&page=1`);
+        const data = await res.json();
+        const results = data.results?.slice(0, 12) || [];
+
+        if (!results.length) { resultsEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">No results found</div>'; return; }
+
+        resultsEl.innerHTML = results.map(r => `
+            <div class="tmdb-card" onclick="selectTMDB(${r.id}, '${(r.title || r.name || '').replace(/'/g, "\\'")}', '${r.poster_path || ''}', '${r.release_date || r.first_air_date || ''}', '${type}')">
+                <img src="${r.poster_path ? IMG + r.poster_path : 'https://via.placeholder.com/120x180?text=No+Poster'}" loading="lazy">
+                <div class="tmdb-card-info">
+                    <div class="tmdb-card-title">${r.title || r.name}</div>
+                    <div class="tmdb-card-year">${(r.release_date || r.first_air_date || '').slice(0,4)}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        resultsEl.innerHTML = '<div style="text-align:center;padding:2rem;color:#e74c3c">Search failed. Check your connection.</div>';
+    }
+}
+
+function selectTMDB(id, title, poster, date, type) {
+    document.querySelectorAll('.tmdb-card').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    if (type === 'movie') {
+        state.selectedMovie = { id, title, poster_path: poster, release_date: date };
+        document.getElementById('selectedMoviePoster').src = poster ? IMG + poster : '';
+        document.getElementById('selectedMovieTitle').textContent = title;
+        document.getElementById('selectedMovieYear').textContent = date?.slice(0,4) || 'N/A';
+        document.getElementById('selectedMovieId').textContent = 'TMDB ID: ' + id;
+        document.getElementById('movieFormCard').style.display = 'block';
+    } else if (type === 'series') {
+        state.selectedSeries = { id, title, poster_path: poster };
+        document.getElementById('selectedSeriesPoster').src = poster ? IMG + poster : '';
+        document.getElementById('selectedSeriesTitle').textContent = title;
+        document.getElementById('selectedSeriesId').textContent = 'TMDB ID: ' + id;
+        document.getElementById('seriesFormCard').style.display = 'block';
+        document.getElementById('episodeRowsSeries').innerHTML = '';
+        state.episodes.series = {};
+    } else {
+        state.selectedAnim = { id, title, poster_path: poster };
+        document.getElementById('selectedAnimPoster').src = poster ? IMG + poster : '';
+        document.getElementById('selectedAnimTitle').textContent = title;
+        document.getElementById('selectedAnimId').textContent = 'TMDB ID: ' + id;
+        document.getElementById('animFormCard').style.display = 'block';
+        document.getElementById('episodeRowsAnimation').innerHTML = '';
+        state.episodes.animation = {};
+    }
+}
+
+// ══════════════════════════════════════════
+//  SAVE FUNCTIONS
+// ══════════════════════════════════════════
+async function saveMovie() {
+    const movie = state.selectedMovie;
+    const url = document.getElementById('movieDownloadUrl').value.trim();
+    if (!movie) return showToast('Select a movie first', 'error');
+    if (!url) return showToast('Enter a download URL', 'error');
+
+    state.downloadLinks[movie.id] = url;
+    const content = generateMoviesData();
+    const ok = await deployToGitHub(content, `Add movie: ${movie.title}`);
+    if (ok) {
+        addActivityLog('add', `Added movie: ${movie.title}`);
+        document.getElementById('movieFormCard').style.display = 'none';
+        document.getElementById('movieDownloadUrl').value = '';
+        state.selectedMovie = null;
+        renderAllTables();
+        renderDashboard();
+        showToast(`${movie.title} added successfully!`, 'success');
+    }
+}
+
+function addEpisodeRow(type) {
+    const isAnim = type === 'animation';
+    const season = parseInt(document.getElementById(isAnim ? 'newSeasonNumAnim' : 'newSeasonNum').value);
+    const ep = parseInt(document.getElementById(isAnim ? 'newEpNumAnim' : 'newEpNum').value);
+    const url = document.getElementById(isAnim ? 'newEpUrlAnim' : 'newEpUrl').value.trim();
+    if (!url) return showToast('Enter a download URL', 'error');
+
+    if (!state.episodes[type][season]) state.episodes[type][season] = {};
+    state.episodes[type][season][ep] = url;
+
+    const container = document.getElementById(isAnim ? 'episodeRowsAnimation' : 'episodeRowsSeries');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:0.5rem;padding:0.5rem;background:#1a1a1a;border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem;';
+    row.innerHTML = `
+        <span style="background:var(--primary);color:white;padding:2px 8px;border-radius:4px;font-size:0.75rem;">S${season}E${ep}</span>
+        <span style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</span>
+        <button onclick="this.parentElement.remove(); delete state.episodes['${type}'][${season}][${ep}]" 
+                style="background:none;border:none;color:#e74c3c;cursor:pointer;"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(row);
+
+    document.getElementById(isAnim ? 'newEpUrlAnim' : 'newEpUrl').value = '';
+    document.getElementById(isAnim ? 'newEpNumAnim' : 'newEpNum').value = ep + 1;
+}
+
+async function saveSeries(type) {
+    const selected = type === 'series' ? state.selectedSeries : state.selectedAnim;
+    const eps = state.episodes[type];
+    if (!selected) return showToast('Select a title first', 'error');
+    if (!Object.keys(eps).length) return showToast('Add at least one episode', 'error');
+
+    const entry = {
+        id: selected.id,
+        title: selected.title,
+        poster_path: selected.poster_path,
+        seasons: eps,
+    };
+
+    if (type === 'series') state.seriesData[selected.id] = entry;
+    else state.animationData[selected.id] = entry;
+
+    const content = generateMoviesData();
+    const ok = await deployToGitHub(content, `Add ${type}: ${selected.title}`);
+    if (ok) {
+        addActivityLog('add', `Added ${type}: ${selected.title}`);
+        if (type === 'series') {
+            document.getElementById('seriesFormCard').style.display = 'none';
+            state.selectedSeries = null;
+        } else {
+            document.getElementById('animFormCard').style.display = 'none';
+            state.selectedAnim = null;
+        }
+        state.episodes[type] = {};
+        renderAllTables();
+        renderDashboard();
+        showToast(`${selected.title} added successfully!`, 'success');
+    }
+}
+
+async function deleteMovie(id, title) {
+    if (!confirm(`Delete "${title}"? This will remove it from the website.`)) return;
+    delete state.downloadLinks[id];
+    const content = generateMoviesData();
+    const ok = await deployToGitHub(content, `Delete movie: ${title}`);
+    if (ok) {
+        addActivityLog('delete', `Deleted movie: ${title}`);
+        renderAllTables();
+        renderDashboard();
+        showToast(`${title} deleted`, 'success');
+    }
+}
+
+async function deleteSeries(id, title, type) {
+    if (!confirm(`Delete "${title}"? This will remove it from the website.`)) return;
+    if (type === 'series') delete state.seriesData[id];
+    else delete state.animationData[id];
+    const content = generateMoviesData();
+    const ok = await deployToGitHub(content, `Delete ${type}: ${title}`);
+    if (ok) {
+        addActivityLog('delete', `Deleted ${type}: ${title}`);
+        renderAllTables();
+        renderDashboard();
+        showToast(`${title} deleted`, 'success');
+    }
+}
+
+// ══════════════════════════════════════════
+//  RENDER TABLES
+// ══════════════════════════════════════════
+async function renderAllTables() {
+    await renderMoviesTable();
+    renderSeriesTable('series');
+    renderSeriesTable('animation');
+}
+
+async function renderMoviesTable() {
+    const tbody = document.getElementById('moviesTableBody');
+    const ids = Object.keys(state.downloadLinks);
+    if (!ids.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-film"></i>No movies added yet</div></td></tr>'; return; }
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    const movies = await Promise.all(ids.map(id =>
+        fetch(`${TMDB_BASE}/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json()).catch(() => ({ id, title: 'Movie #' + id, poster_path: null }))
+    ));
+
+    tbody.innerHTML = movies.map(m => {
+        const url = state.downloadLinks[m.id];
+        const isBridge = url?.includes('onrender.com');
+        const dlCount = parseInt(localStorage.getItem(`cinehub_dl_${m.id}`) || '0');
+        return `<tr>
+            <td><img src="${m.poster_path ? IMG + m.poster_path : 'https://via.placeholder.com/40x60'}" style="width:40px;border-radius:4px;"></td>
+            <td><div style="font-weight:600;">${m.title || 'Unknown'}</div><div style="color:var(--muted);font-size:0.75rem;">${m.release_date?.slice(0,4) || 'N/A'}</div></td>
+            <td style="color:var(--muted);font-size:0.85rem;">${m.id}</td>
+            <td><span class="badge ${isBridge ? 'badge-telegram' : 'badge-external'}">${isBridge ? '⚡ Telegram' : '🔗 External'}</span></td>
+            <td><span style="font-weight:600;">${dlCount}</span></td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteMovie('${m.id}', '${(m.title || '').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function renderSeriesTable(type) {
+    const data = type === 'series' ? state.seriesData : state.animationData;
+    const tbody = document.getElementById(type === 'series' ? 'seriesTableBody' : 'animTableBody');
+    const items = Object.values(data);
+
+    if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-tv"></i>No ${type} added yet</div></td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(s => {
+        const seasons = Object.keys(s.seasons || {}).length;
+        const eps = Object.values(s.seasons || {}).reduce((acc, season) => acc + Object.keys(season).length, 0);
+        return `<tr>
+            <td><img src="${s.poster_path ? IMG + s.poster_path : 'https://via.placeholder.com/40x60'}" style="width:40px;border-radius:4px;"></td>
+            <td><div style="font-weight:600;">${s.title}</div></td>
+            <td style="color:var(--muted);font-size:0.85rem;">${s.id}</td>
+            <td>${seasons} season${seasons !== 1 ? 's' : ''}</td>
+            <td>${eps} episode${eps !== 1 ? 's' : ''}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteSeries('${s.id}', '${s.title.replace(/'/g, "\\'")}', '${type}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function filterTable(tableId, query) {
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+    });
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+    const movieCount = Object.keys(state.downloadLinks).length;
+    const seriesCount = Object.keys(state.seriesData).length;
+    const animCount = Object.keys(state.animationData).length;
+    const totalDl = Object.keys({...state.downloadLinks})
+        .reduce((acc, id) => acc + parseInt(localStorage.getItem(`cinehub_dl_${id}`) || '0'), 0);
+
+    document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fas fa-film"></i></div>
+            <div class="stat-info"><div class="stat-num">${movieCount}</div><div class="stat-label">Total Movies</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-tv"></i></div>
+            <div class="stat-info"><div class="stat-num">${seriesCount}</div><div class="stat-label">TV Series</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-dragon"></i></div>
+            <div class="stat-info"><div class="stat-num">${animCount}</div><div class="stat-label">Animation</div></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow"><i class="fas fa-download"></i></div>
+            <div class="stat-info"><div class="stat-num">${totalDl}</div><div class="stat-label">Total Downloads</div></div>
+        </div>
+    `;
+
+    renderActivityLog();
+    renderTopDownloads();
+}
+
+function renderDownloads() {
+    const tbody = document.getElementById('downloadsTableBody');
+    const all = [
+        ...Object.entries(state.downloadLinks).map(([id]) => ({ id, type: 'Movie' })),
+        ...Object.values(state.seriesData).map(s => ({ id: s.id, title: s.title, type: 'Series' })),
+        ...Object.values(state.animationData).map(a => ({ id: a.id, title: a.title, type: 'Animation' })),
+    ];
+    if (!all.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-download"></i>No data yet</div></td></tr>'; return; }
+
+    tbody.innerHTML = all.map(item => {
+        const count = parseInt(localStorage.getItem(`cinehub_dl_${item.id}`) || '0');
+        const last = localStorage.getItem(`cinehub_dl_last_${item.id}`) || 'Never';
+        return `<tr>
+            <td>${item.title || 'Movie #' + item.id}</td>
+            <td><span class="badge badge-${item.type.toLowerCase()}">${item.type}</span></td>
+            <td><strong>${count}</strong></td>
+            <td style="color:var(--muted);font-size:0.85rem;">${last}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+//  ACTIVITY LOG
+// ══════════════════════════════════════════
+function addActivityLog(type, text) {
+    const logs = JSON.parse(localStorage.getItem('cinehub_activity') || '[]');
+    logs.unshift({ type, text, time: new Date().toLocaleString() });
+    if (logs.length > 20) logs.pop();
+    localStorage.setItem('cinehub_activity', JSON.stringify(logs));
+    renderActivityLog();
+}
+
+function renderActivityLog() {
+    const logs = JSON.parse(localStorage.getItem('cinehub_activity') || '[]');
+    const container = document.getElementById('activityLog');
+    if (!logs.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i>No activity yet</div>'; return; }
+    container.innerHTML = logs.slice(0, 8).map(l => `
+        <div class="log-item">
+            <div class="log-icon ${l.type}"><i class="fas fa-${l.type === 'add' ? 'plus' : l.type === 'delete' ? 'trash' : 'rocket'}"></i></div>
+            <div class="log-text">${l.text}<div class="log-time">${l.time}</div></div>
+        </div>
+    `).join('');
+}
+
+function renderTopDownloads() {
+    const items = Object.keys(state.downloadLinks).map(id => ({
+        id, count: parseInt(localStorage.getItem(`cinehub_dl_${id}`) || '0')
+    })).sort((a,b) => b.count - a.count).slice(0, 5);
+
+    const container = document.getElementById('topDownloads');
+    if (!items.length || items.every(i => i.count === 0)) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-download"></i>No download data yet</div>';
+        return;
+    }
+    container.innerHTML = items.map(i => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid #1a1a1a;">
+            <span style="font-size:0.85rem;">Movie #${i.id}</span>
+            <span style="background:rgba(229,9,20,0.15);color:var(--primary);padding:2px 8px;border-radius:4px;font-size:0.8rem;font-weight:700;">${i.count} DL</span>
+        </div>
+    `).join('');
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.getAttribute('onclick')?.includes(`'${name}'`)) n.classList.add('active');
+    });
+    if (name === 'downloads') renderDownloads();
+}
+
+function switchTab(tab) {
+    state.currentTab = tab;
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['movie','series','animation'][i] === tab));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function showAddForm(type) {
+    showPage('add');
+    switchTab(type);
+}
+
+// ══════════════════════════════════════════
+//  DEPLOY STATUS UI
+// ══════════════════════════════════════════
+function showDeployStatus(msg, pct, done = false) {
+    const el = document.getElementById('deployStatus');
+    el.style.display = 'block';
+    document.getElementById('deployTitle').textContent = done ? '✅ Deployed!' : '🚀 Deploying...';
+    document.getElementById('deploySub').textContent = msg;
+    document.getElementById('deployFill').style.width = pct + '%';
+    document.getElementById('deployFill').style.background = done ? 'var(--green)' : 'var(--primary)';
+    if (done) setTimeout(hideDeployStatus, 3000);
+}
+
+function hideDeployStatus() {
+    document.getElementById('deployStatus').style.display = 'none';
+    document.getElementById('deployFill').style.width = '0%';
+}
+
+// ══════════════════════════════════════════
+//  MISC
+// ══════════════════════════════════════════
+async function testGitHub() {
+    const s = getSettings();
+    if (!s.token || !s.user || !s.repo) return showToast('Fill in all GitHub settings first', 'error');
+    try {
+        const res = await fetch(`https://api.github.com/repos/${s.user}/${s.repo}`, {
+            headers: { 'Authorization': `token ${s.token}` }
+        });
+        if (res.ok) showToast('✅ GitHub connection successful!', 'success');
+        else showToast('❌ Connection failed. Check your token and repo name.', 'error');
+    } catch(e) { showToast('❌ Connection error: ' + e.message, 'error'); }
+}
+
+async function testBridge() {
+    const url = document.getElementById('bridgeUrl').value;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        showToast('✅ Bridge connected: ' + data.status, 'success');
+    } catch(e) { showToast('❌ Bridge not reachable', 'error'); }
+}
+
+function toggleTokenVisibility() {
+    const input = document.getElementById('githubToken');
+    const icon = document.getElementById('tokenEyeIcon');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+
+function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.style.cssText = `
+        position:fixed;top:20px;left:50%;transform:translateX(-50%);
+        background:${type === 'success' ? 'var(--green)' : type === 'error' ? '#e74c3c' : '#f39c12'};
+        color:white;padding:0.85rem 1.5rem;border-radius:8px;z-index:99999;
+        font-weight:600;font-size:0.9rem;box-shadow:0 4px 20px rgba(0,0,0,0.4);
+        animation:slideDown 0.3s ease;
+    `;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+// Auto-save default settings if not set
+(function() {
+    const s = JSON.parse(localStorage.getItem('cinehub_admin_settings') || '{}');
+    if (!s.user) {
+        localStorage.setItem('cinehub_admin_settings', JSON.stringify({
+            token: '',
+            user: 'dicksonkofi124-dot',
+            repo: 'cinehub',
+            branch: 'main',
+            bridge: 'https://cinehub-bridge.onrender.com'
+        }));
+    }
+})();
+
+// ── INIT ──
+document.getElementById('adminPassword').addEventListener('keypress', e => e.key === 'Enter' && doLogin());
+checkSession();
+
+// Preload default settings
+document.addEventListener('DOMContentLoaded', () => {
+    const s = getSettings();
+    if (!s.user) {
+        document.getElementById('githubUser').value = 'dicksonkofi124-dot';
+        document.getElementById('githubRepo').value = 'cinehub';
+        document.getElementById('githubBranch').value = 'main';
+    }
+});
+</script>
+</body>
+</html>
