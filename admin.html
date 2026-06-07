@@ -194,6 +194,7 @@
                 <button class="nav-btn" onclick="goTo('animation')"><i class="fas fa-dragon"></i><span>Animation</span></button>
                 <button class="nav-btn" onclick="goTo('add')"><i class="fas fa-plus-circle"></i><span>Add Content</span></button>
                 <button class="nav-btn" onclick="goTo('analytics')"><i class="fas fa-chart-bar"></i><span>Analytics</span></button>
+                <button class="nav-btn" onclick="goTo('visitors')"><i class="fas fa-globe"></i><span>Visitors</span></button>
                 <button class="nav-btn" onclick="goTo('settings')"><i class="fas fa-cog"></i><span>Settings</span></button>
             </nav>
             <div class="sidebar-bottom">
@@ -411,6 +412,40 @@
                     <div class="card-title"><i class="fas fa-robot" style="color:var(--blue)"></i> Telegram Bridge</div>
                     <div class="fg"><label>Bridge Server URL</label><input type="text" id="cfgBridge" placeholder="https://cinehub-bridge.onrender.com"></div>
                     <button class="btn btn-secondary" onclick="testBridge()"><i class="fas fa-plug"></i> Test Bridge</button>
+                </div>
+            </div>
+
+
+            <!-- VISITORS -->
+            <div id="pg-visitors" class="page">
+                <div class="page-title">Visitors by Country</div>
+                <div class="page-sub">Geographic breakdown of your website visitors</div>
+
+                <div class="stats" id="visitorStats"></div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-globe" style="color:var(--blue)"></i> Countries</div>
+                        <div id="countryList"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-chart-bar" style="color:var(--red)"></i> Visit Distribution</div>
+                        <div id="visitChart"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:0">
+                    <div class="card-title"><i class="fas fa-table" style="color:var(--green)"></i> Full Country Table</div>
+                    <div class="tbl-wrap">
+                        <table>
+                            <thead><tr><th>Flag</th><th>Country</th><th>Code</th><th>Visits</th><th>Share</th><th>Last Visit</th></tr></thead>
+                            <tbody id="countryTable"></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:1rem;display:flex;gap:0.75rem">
+                        <button class="btn btn-secondary" onclick="refreshVisitors()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button class="btn btn-danger" onclick="clearVisitorData()"><i class="fas fa-trash"></i> Clear Data</button>
+                    </div>
                 </div>
             </div>
 
@@ -850,6 +885,7 @@ function goTo(pg) {
         if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+pg+"'")) b.classList.add('active');
     });
     if (pg==='analytics') renderAnalytics();
+    if (pg==='visitors') renderVisitors();
     if (pg==='movies') renderMovies();
     if (pg==='series') renderShows('series');
     if (pg==='animation') renderShows('animation');
