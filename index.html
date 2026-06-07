@@ -4,49 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- SEO & Description -->
     <meta name="description" content="CineHub - Discover amazing movies, watch trailers, and download your favorites. Browse popular, trending, and latest movies all in one place.">
+    
+    <!-- Open Graph Tags -->
     <meta property="og:title" content="CineHub - Discover Amazing Movies">
     <meta property="og:description" content="Explore thousands of movies, watch trailers, and build your watchlist.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cinehub-jet-ten.vercel.app">
     <meta property="og:image" content="https://images.unsplash.com/photo-1489599809568-35296c6df5f2?auto=format&fit=crop&w=1200&q=80">
+
+    <!-- ====================== FULL MODERN FAVICONS ====================== -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
+    <!-- Android Chrome icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <!-- ==================================================== -->
+
     <title>CineHub - Discover Amazing Movies</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-
-    <!-- ===== Human Verification Overlay ===== -->
-    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
-        <div style="text-align:center;max-width:420px;width:100%;">
-            <div style="font-size:3.5rem;margin-bottom:1rem;">🎬</div>
-            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
-            <p style="color:#aaa;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
-            <div style="background:#111;border:1px solid #333;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
-                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-                    <div id="verifyCheckbox" onclick="handleVerify()" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:#1a1a1a;"></div>
-                    <span style="color:#e0e0e0;font-size:1rem;font-family:system-ui,sans-serif;cursor:pointer;" onclick="handleVerify()">I am not a robot</span>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
-                    <img src="https://www.cloudflare.com/img/logo-cloudflare-dark.svg" style="height:20px;opacity:0.4;" onerror="this.style.display='none'">
-                    <span style="color:#555;font-size:0.7rem;font-family:system-ui,sans-serif;">Privacy - Terms</span>
-                </div>
-            </div>
-            <button id="verifyBtn" onclick="submitVerify()" disabled style="width:100%;padding:1rem;background:#333;color:#777;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:not-allowed;font-family:system-ui,sans-serif;transition:all 0.3s;">
-                Verify to Continue
-            </button>
-        </div>
-        <p style="color:#444;font-size:0.75rem;font-family:system-ui,sans-serif;">Protected by CineHub Security · © 2026</p>
-    </div>
-    <style>#verifyOverlay * { box-sizing: border-box; }</style>
 
     <!-- Header -->
     <header class="header">
@@ -195,6 +180,7 @@
                 <h2 class="section-title">My Watchlist</h2>
                 <button id="clearWatchlistBtn" class="btn btn-secondary">Clear Watchlist</button>
             </div>
+            <!-- Your grid shell will now cleanly receive the stylized interactive button cards -->
             <div id="watchlistGrid" class="movies-grid"></div>
             <p id="watchlistEmpty" class="empty-message" style="display: none; text-align: center; padding: 4rem; color: #888;">
                 Your watchlist is empty. Add movies from the Popular Movies section.
@@ -294,41 +280,35 @@
     <script src="script.js"></script>
 
     <script>
-        var verified = false;
+        // CineHub Visitor Tracking
+        (function() {
+            try {
+                fetch('https://ipapi.co/json/')
+                    .then(function(r){ return r.json(); })
+                    .then(function(d) {
+                        if (!d.country_name) return;
+                        var key = 'ch_visits_' + d.country_code;
+                        var count = parseInt(localStorage.getItem(key) || '0') + 1;
+                        localStorage.setItem(key, count);
 
-        if (sessionStorage.getItem('cinehub_verified') === '1') {
-            document.getElementById('verifyOverlay').style.display = 'none';
-        }
+                        // Store country name too
+                        localStorage.setItem('ch_country_' + d.country_code, d.country_name);
 
-        function handleVerify() {
-            if (verified) return;
-            verified = true;
-            var box = document.getElementById('verifyCheckbox');
-            box.style.background = '#e50914';
-            box.style.borderColor = '#e50914';
-            box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            var btn = document.getElementById('verifyBtn');
-            btn.disabled = false;
-            btn.style.background = '#e50914';
-            btn.style.color = 'white';
-            btn.style.cursor = 'pointer';
-            btn.style.boxShadow = '0 4px 15px rgba(229,9,20,0.4)';
-        }
+                        // Store country flag emoji
+                        localStorage.setItem('ch_flag_' + d.country_code, d.country_code);
 
-        function submitVerify() {
-            if (!verified) return;
-            sessionStorage.setItem('cinehub_verified', '1');
-            var btn = document.getElementById('verifyBtn');
-            btn.innerHTML = '✓ Verified! Loading...';
-            btn.style.background = '#2ecc71';
-            btn.style.boxShadow = 'none';
-            var overlay = document.getElementById('verifyOverlay');
-            setTimeout(function() {
-                overlay.style.transition = 'opacity 0.6s ease';
-                overlay.style.opacity = '0';
-                setTimeout(function() { overlay.style.display = 'none'; }, 600);
-            }, 600);
-        }
+                        // Track total visits
+                        var total = parseInt(localStorage.getItem('ch_total_visits') || '0') + 1;
+                        localStorage.setItem('ch_total_visits', total);
+
+                        // Store last visit time per country
+                        localStorage.setItem('ch_last_' + d.country_code, new Date().toLocaleString());
+
+                        // Store city too
+                        if (d.city) localStorage.setItem('ch_city_' + d.country_code, d.city);
+                    }).catch(function(){});
+            } catch(e) {}
+        })();
     </script>
 
 </body>
