@@ -373,7 +373,7 @@
                 <div class="card">
                     <div class="tbl-wrap">
                         <table>
-                            <thead><tr><th>Title</th><th>Type</th><th>Downloads</th></tr></thead>
+                            <thead><tr><th colspan="2">Title</th><th>Type</th><th>Downloads</th></tr></thead>
                             <tbody id="analyticsBody"></tbody>
                         </table>
                     </div>
@@ -442,9 +442,22 @@
                             <tbody id="countryTable"></tbody>
                         </table>
                     </div>
-                    <div style="margin-top:1rem;display:flex;gap:0.75rem">
-                        <button class="btn btn-secondary" onclick="refreshVisitors()"><i class="fas fa-sync"></i> Refresh</button>
+                    <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+                        <button class="btn btn-primary" onclick="refreshVisitors()"><i class="fas fa-location-arrow"></i> Log My Location</button>
+                        <button class="btn btn-secondary" onclick="showManualEntry()"><i class="fas fa-plus"></i> Add Manually</button>
                         <button class="btn btn-danger" onclick="clearVisitorData()"><i class="fas fa-trash"></i> Clear Data</button>
+                    </div>
+                    <div id="manualEntry" style="display:none;margin-top:1rem;padding:1rem;background:#181818;border-radius:8px">
+                        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem">Manually add a country visit:</div>
+                        <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
+                            <div style="flex:0 0 120px"><label style="font-size:0.78rem;color:var(--muted)">Country Code (e.g. GH)</label>
+                            <input type="text" id="manCode" placeholder="GH" maxlength="2" style="width:100%;padding:0.6rem;background:#111;border:1px solid #333;border-radius:6px;color:white;font-family:Inter,sans-serif;margin-top:4px;text-transform:uppercase"></div>
+                            <div style="flex:1"><label style="font-size:0.78rem;color:var(--muted)">Country Name</label>
+                            <input type="text" id="manName" placeholder="Ghana" style="width:100%;padding:0.6rem;background:#111;border:1px solid #333;border-radius:6px;color:white;font-family:Inter,sans-serif;margin-top:4px"></div>
+                            <div style="flex:0 0 100px"><label style="font-size:0.78rem;color:var(--muted)">Visits</label>
+                            <input type="number" id="manCount" value="1" min="1" style="width:100%;padding:0.6rem;background:#111;border:1px solid #333;border-radius:6px;color:white;font-family:Inter,sans-serif;margin-top:4px"></div>
+                            <button class="btn btn-success" onclick="addManualVisit()"><i class="fas fa-plus"></i> Add</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -836,17 +849,53 @@ function stat(cls, icon, num, label) {
     return '<div class="stat"><div class="stat-icon '+cls+'"><i class="'+icon+'"></i></div><div><div class="stat-num">'+num+'</div><div class="stat-label">'+label+'</div></div></div>';
 }
 
-function renderAnalytics() {
+async function renderAnalytics() {
     var tbody = document.getElementById('analyticsBody');
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
     var rows = [];
-    Object.keys(db.dl).forEach(function(id){ rows.push({id:id,type:'Movie',count:parseInt(localStorage.getItem('cinehub_dl_'+id)||'0')}); });
-    Object.values(db.series).forEach(function(s){ rows.push({id:s.id,title:s.title,type:'Series',count:0}); });
-    Object.values(db.anim).forEach(function(a){ rows.push({id:a.id,title:a.title,type:'Animation',count:0}); });
+
+    // Fetch real titles for movies from TMDB
+    var movieIds = Object.keys(db.dl);
+    var movieData = await Promise.all(movieIds.map(function(id) {
+        return fetch('https://api.themoviedb.org/3/movie/'+id+'?api_key='+TMDB)
+            .then(function(r){ return r.json(); })
+            .catch(function(){ return {id:id, title:'Movie #'+id}; });
+    }));
+
+    movieData.forEach(function(m) {
+        rows.push({
+            id: m.id,
+            title: m.title || ('Movie #'+m.id),
+            poster: m.poster_path ? 'https://image.tmdb.org/t/p/w92'+m.poster_path : null,
+            type: 'Movie',
+            count: parseInt(localStorage.getItem('cinehub_dl_'+m.id)||'0'),
+            year: (m.release_date||'').slice(0,4)
+        });
+    });
+
+    Object.values(db.series).forEach(function(s){
+        rows.push({id:s.id, title:s.title, poster:s.poster_path?'https://image.tmdb.org/t/p/w92'+s.poster_path:null, type:'Series', count:0, year:''});
+    });
+    Object.values(db.anim).forEach(function(a){
+        rows.push({id:a.id, title:a.title, poster:a.poster_path?'https://image.tmdb.org/t/p/w92'+a.poster_path:null, type:'Animation', count:0, year:''});
+    });
+
     rows.sort(function(a,b){ return b.count-a.count; });
-    if (!rows.length) { tbody.innerHTML = '<tr><td colspan="3"><div class="empty"><i class="fas fa-chart-bar"></i>No data yet</div></td></tr>'; return; }
+
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty"><i class="fas fa-chart-bar"></i>No data yet</div></td></tr>';
+        return;
+    }
+
     tbody.innerHTML = rows.map(function(r) {
         var tc = r.type==='Movie'?'b-red':r.type==='Series'?'b-blue':'b-green';
-        return '<tr><td>'+(r.title||'Movie #'+r.id)+'</td><td><span class="badge '+tc+'">'+r.type+'</span></td><td><strong>'+r.count+'</strong></td></tr>';
+        var poster = r.poster ? '<img src="'+r.poster+'" style="width:32px;border-radius:4px;vertical-align:middle;margin-right:0.5rem">' : '';
+        return '<tr>' +
+            '<td>'+poster+'<span style="font-weight:600">'+r.title+'</span>'+(r.year?'<span style="color:var(--muted);font-size:0.75rem;margin-left:0.5rem">'+r.year+'</span>':'')+'</td>' +
+            '<td><span class="badge '+tc+'">'+r.type+'</span></td>' +
+            '<td><strong>'+r.count+'</strong></td>' +
+        '</tr>';
     }).join('');
 }
 
@@ -945,6 +994,30 @@ function toast(msg, type) {
     document.body.appendChild(t);
     setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(function(){ t.remove(); },300); }, 3000);
 }
+
+function showManualEntry() {
+    var el = document.getElementById('manualEntry');
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function addManualVisit() {
+    var code = document.getElementById('manCode').value.trim().toUpperCase();
+    var name = document.getElementById('manName').value.trim();
+    var count = parseInt(document.getElementById('manCount').value) || 1;
+    if (!code || !name) return toast('Enter country code and name', 'err');
+    if (code.length !== 2) return toast('Country code must be 2 letters', 'err');
+    var existing = parseInt(localStorage.getItem('ch_visits_' + code) || '0');
+    localStorage.setItem('ch_visits_' + code, existing + count);
+    localStorage.setItem('ch_country_' + code, name);
+    localStorage.setItem('ch_last_' + code, new Date().toLocaleString());
+    document.getElementById('manCode').value = '';
+    document.getElementById('manName').value = '';
+    document.getElementById('manCount').value = '1';
+    document.getElementById('manualEntry').style.display = 'none';
+    renderVisitors();
+    toast(getFlagEmoji(code) + ' ' + name + ' added (' + count + ' visit' + (count > 1 ? 's' : '') + ')', 'ok');
+}
+
 </script>
 </body>
 </html>
