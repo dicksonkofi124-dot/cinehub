@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 6/10/2026, 2:56:54 PM
+// Updated: 6/10/2026, 2:59:11 PM
 
 const downloadLinks = {
     83533: "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
@@ -19,13 +19,7 @@ const seriesData = {
         poster_path: "/cbODFqkcmRgrYH8NkG4Q4Hcg8Z1.jpg",
         seasons: {
             1: {
-                2: "https://cinehub-bridge-server.onrender.com/download/3506869277/4",
-                3: "https://cinehub-bridge-server.onrender.com/download/3506869277/5",
-                4: "https://cinehub-bridge-server.onrender.com/download/3506869277/6",
-                5: "https://cinehub-bridge-server.onrender.com/download/3506869277/7",
-                6: "https://cinehub-bridge-server.onrender.com/download/3506869277/8",
-                7: "https://cinehub-bridge-server.onrender.com/download/3506869277/9",
-                8: "https://cinehub-bridge-server.onrender.com/download/3506869277/10",
+                1: "https://cinehub-bridge-server.onrender.com/download/3506869277/2",
             },
         }
     },
