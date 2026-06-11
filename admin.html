@@ -870,20 +870,22 @@ async function saveMovie() {
     var finalUrl = url;
     var bridgePushed = false;
 
-    // Detect TDrive old bridge link and convert
-    if (url.includes('cinehub-bridge-server.onrender.com/download/home/')) {
-        var msgId = parseInt(url.split('/').pop());
+    // Detect TDrive old bridge link and convert (both Saved Messages and Channel formats)
+    if (url.includes('cinehub-bridge-server.onrender.com')) {
+        var parsed = parseTDriveUrl(url);
+        if (!parsed) return toast('Could not parse TDrive URL', 'err');
+
         var movieKey = document.getElementById('movieKey') ? document.getElementById('movieKey').value.trim() : '';
-        if (!movieKey) return toast('Enter a movie key for TDrive links','err');
+        if (!movieKey) return toast('Enter a movie key for TDrive links', 'err');
 
         // Convert to new bridge URL
         var s = cfg();
-        var bridgeBase = s.bridge || 'https://cinehub-bridge.onrender.com';
+        var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
         finalUrl = bridgeBase + '/download/' + movieKey;
 
-        // Push to bridge server repo
+        // Push to bridge server repo with the message ID
         toast('Updating bridge server...', 'ok');
-        bridgePushed = await pushToBridgeServer(movieKey, msgId);
+        bridgePushed = await pushToBridgeServer(movieKey, parseInt(parsed.messageId));
     }
 
     db.dl[m.id] = finalUrl;
@@ -931,14 +933,45 @@ async function saveShow(type) {
     var s = type === 'series' ? sel.series : sel.animation;
     if (!s) return toast('Select a title first','err');
     if (!Object.keys(eps[type]).length) return toast('Add at least one episode','err');
-    var entry = { id:s.id, title:s.title, poster_path:s.poster_path, seasons: JSON.parse(JSON.stringify(eps[type])) };
+
+    // ── MERGE FIX: merge new episodes into existing data, never overwrite ──
+    var existing = (type === 'series' ? db.series[s.id] : db.anim[s.id]) || {};
+    var existingSeasons = existing.seasons || {};
+    var newSeasons = JSON.parse(JSON.stringify(eps[type]));
+
+    // Deep merge: keep all existing episodes, add/update new ones
+    var mergedSeasons = JSON.parse(JSON.stringify(existingSeasons));
+    Object.keys(newSeasons).forEach(function(season) {
+        if (!mergedSeasons[season]) mergedSeasons[season] = {};
+        Object.keys(newSeasons[season]).forEach(function(ep) {
+            mergedSeasons[season][ep] = newSeasons[season][ep];
+        });
+    });
+
+    // Count how many new episodes were added
+    var newEpCount = Object.values(newSeasons).reduce(function(a, s) { return a + Object.keys(s).length; }, 0);
+    var totalEpCount = Object.values(mergedSeasons).reduce(function(a, s) { return a + Object.keys(s).length; }, 0);
+
+    var entry = {
+        id: s.id,
+        title: s.title,
+        poster_path: s.poster_path,
+        seasons: mergedSeasons
+    };
+
     if (type === 'series') db.series[s.id] = entry;
     else db.anim[s.id] = entry;
-    var ok = await deploy('Add '+type+': '+s.title);
+
+    var ok = await deploy('Add '+type+' episodes: '+s.title+' (+'+newEpCount+' ep)');
     if (ok) {
-        toast(s.title+' added!','ok');
-        if (type === 'series') { document.getElementById('seriesForm').style.display='none'; sel.series=null; eps.series={}; }
-        else { document.getElementById('animForm').style.display='none'; sel.animation=null; eps.animation={}; }
+        toast(s.title+' updated! '+newEpCount+' episode(s) added. Total: '+totalEpCount+' episodes.','ok');
+        if (type === 'series') {
+            document.getElementById('seriesForm').style.display='none';
+            sel.series=null; eps.series={};
+        } else {
+            document.getElementById('animForm').style.display='none';
+            sel.animation=null; eps.animation={};
+        }
         renderShows(type);
         renderDash();
     }
