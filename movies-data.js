@@ -1,37 +1,18 @@
 // movies-data.js — Managed by CineHub Admin
 // Updated: 6/8/2026
-// movies-data.js — Managed by CineHub Admin
-// Updated: 6/8/2026
 
 const downloadLinks = {
     83533:   "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
-    83533:   "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
     875828:  "https://vdl.np-downloader.com/sdm_downloads/download-peaky-blinders-the-immortal-man-2026/",
-    980489:  "https://cinehub-bridge.onrender.com/download/gran-turismo-2023",
-    1122573: "https://cinehub-bridge.onrender.com/download/in-the-grey",
     980489:  "https://cinehub-bridge.onrender.com/download/gran-turismo-2023",
     1122573: "https://cinehub-bridge.onrender.com/download/in-the-grey",
     1159559: "https://vdl.np-downloader.com/sdm_downloads/download-scream-7-2026/",
     1171145: "https://vdl.np-downloader.com/sdm_downloads/download-crime-101-2026/",
     1265609: "https://vdl.np-downloader.com/sdm_downloads/download-war-machine-2026/",
     1306368: "https://cinehub-bridge.onrender.com/download/the-rip-2026",
-    1306368: "https://cinehub-bridge.onrender.com/download/the-rip-2026",
 };
 
 const seriesData = {
-
-    // === Off Campus ===
-    279690: {
-        id: 279690,
-        title: "Off Campus",
-        poster_path: "/off-campus-poster.jpg",
-        seasons: {
-            1: {
-                1: "https://cinehub-bridge.onrender.com/download/off-campus-s1e1"
-            }
-        }
-    },
-
 
     // === Off Campus ===
     279690: {
