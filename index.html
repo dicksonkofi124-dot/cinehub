@@ -278,5 +278,38 @@
     <!-- Scripts -->
     <script src="movies-data.js"></script>
     <script src="script.js"></script>
+
+    <script>
+        // CineHub Visitor Tracking
+        (function() {
+            try {
+                fetch('https://ipapi.co/json/')
+                    .then(function(r){ return r.json(); })
+                    .then(function(d) {
+                        if (!d.country_name) return;
+                        var key = 'ch_visits_' + d.country_code;
+                        var count = parseInt(localStorage.getItem(key) || '0') + 1;
+                        localStorage.setItem(key, count);
+
+                        // Store country name too
+                        localStorage.setItem('ch_country_' + d.country_code, d.country_name);
+
+                        // Store country flag emoji
+                        localStorage.setItem('ch_flag_' + d.country_code, d.country_code);
+
+                        // Track total visits
+                        var total = parseInt(localStorage.getItem('ch_total_visits') || '0') + 1;
+                        localStorage.setItem('ch_total_visits', total);
+
+                        // Store last visit time per country
+                        localStorage.setItem('ch_last_' + d.country_code, new Date().toLocaleString());
+
+                        // Store city too
+                        if (d.city) localStorage.setItem('ch_city_' + d.country_code, d.city);
+                    }).catch(function(){});
+            } catch(e) {}
+        })();
+    </script>
+
 </body>
 </html>

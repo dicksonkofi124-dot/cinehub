@@ -1,26 +1,31 @@
-// movies-data.js — Central place for all movie & series download links
-//
-// Bridge server: https://cinehub-bridge.onrender.com
-// To add a new movie from Telegram:
-//   1. Upload to Saved Messages via TDrive
-//   2. Run generate-session.js to get message ID
-//   3. Add to server.js MOVIES registry → git push
-//   4. Add URL here using the same key
+// movies-data.js — Managed by CineHub Admin
+// Updated: 6/8/2026
 
 const downloadLinks = {
-    // ── Telegram Bridge (direct from your cloud) ──────────────────
-    1306368: "https://cinehub-bridge.onrender.com/download/the-rip-2026",
-
-    // ── External links (replace these with bridge URLs as you upload) ──
+    83533:   "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
     875828:  "https://vdl.np-downloader.com/sdm_downloads/download-peaky-blinders-the-immortal-man-2026/",
+    980489:  "https://cinehub-bridge.onrender.com/download/gran-turismo-2023",
+    1122573: "https://cinehub-bridge.onrender.com/download/in-the-grey",
     1159559: "https://vdl.np-downloader.com/sdm_downloads/download-scream-7-2026/",
     1171145: "https://vdl.np-downloader.com/sdm_downloads/download-crime-101-2026/",
-    83533:   "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
     1265609: "https://vdl.np-downloader.com/sdm_downloads/download-war-machine-2026/",
+    1306368: "https://cinehub-bridge.onrender.com/download/the-rip-2026",
 };
 
-// Series data
 const seriesData = {
+
+    // === Off Campus ===
+    279690: {
+        id: 279690,
+        title: "Off Campus",
+        poster_path: "/5muutopCuqL7sOAJsJiSFRYjMwx.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/off-campus-s1e1"
+            }
+        }
+    },
+
     // === Game of Thrones ===
     1399: {
         id: 1399,
@@ -91,14 +96,12 @@ const seriesData = {
             5: {
                 1: "https://downloadwella.com/13losijzmexq/The.Boys.S05E01.(THENKIRI.COM).mkv.html",
                 2: "https://downloadwella.com/rmffxrhh8b9i/The.Boys.S05E02.(THENKIRI.COM).mkv.html",
-                // ── Direct from your Telegram cloud ──
                 8: "https://cinehub-bridge.onrender.com/download/the-boys-s5e8"
             }
         }
     }
 };
 
-// Animation data
 const animationData = {
     // === Invincible ===
     95557: {
@@ -148,7 +151,6 @@ const animationData = {
     }
 };
 
-// Export all
 window.downloadLinks = downloadLinks;
 window.seriesData    = seriesData;
 window.animationData = animationData;

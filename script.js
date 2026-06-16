@@ -104,7 +104,7 @@ function setupEventListeners() {
             const { id, title, release_date } = currentMovie;
             const year = release_date ? release_date.slice(0, 4) : 'N/A';
 
-            getMovieTrailer(id, title, year).then(trailer => {
+            getMovieTrailer(id, title, year, mType).then(trailer => {
                 if (trailer) displayTrailer(trailer);
                 else alert('No trailer available');
             }).catch(err => {
@@ -420,9 +420,13 @@ async function loadAnimations() {
 }
 
 function showFallbackContent() {
-    els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">Could not load movies. Please check your connection and refresh.</p>';
-    els.loadMoreBtn.style.display = 'none';
-    showNotification('Failed to load movies. Please refresh.');
+    const fallback = [
+        { id: 27205, title: "Inception", release_date: "2010-07-16", vote_average: 8.4, poster_path: "/9gk7adHYeL0O8xH0v4k6vXjX0.jpg" },
+        { id: 155, title: "The Dark Knight", release_date: "2008-07-18", vote_average: 8.5, poster_path: "/qJ2J5T5qXz0Xz0Xz0Xz0Xz0Xz0Xz0Xz0.jpg" },
+        { id: 272, title: "Batman Begins", release_date: "2005-06-15", vote_average: 7.7, poster_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg" }
+    ];
+    displayMovies(fallback);
+    showNotification('Could not load movies. Showing samples.');
 }
 
 async function searchMovies(query) {
@@ -804,16 +808,37 @@ if (!document.getElementById('notification-styles')) {
 
 // ─── Trailer Functions ─────────────────────────
 
-async function getMovieTrailer(movieId, title, year) {
+async function getMovieTrailer(movieId, title, year, mediaType) {
+    // Determine media type: check if it's a known series/animation
+    const isTv = mediaType === 'tv' ||
+        (window.seriesData && window.seriesData[movieId]) ||
+        (window.animationData && window.animationData[movieId]);
+
+    const endpoint = isTv ? 'tv' : 'movie';
+
     try {
-        const videosRes = await fetch(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=en-US`);
+        // Try primary endpoint first
+        const videosRes = await fetch(`${BASE_URL}/${endpoint}/${movieId}/videos?api_key=${API_KEY}&language=en-US`);
         if (videosRes.ok) {
             const { results } = await videosRes.json();
             let t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube' && v.official);
             if (t) return { source: 'youtube', key: t.key, name: t.name || 'Official Trailer' };
             t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
             if (t) return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+            // If no trailer but results exist, try any YouTube video
+            t = results.find(v => v.site === 'YouTube');
+            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Video' };
         }
+
+        // If TV failed or returned nothing, try movie endpoint as fallback (and vice versa)
+        const fallbackEndpoint = isTv ? 'movie' : 'tv';
+        const fallbackRes = await fetch(`${BASE_URL}/${fallbackEndpoint}/${movieId}/videos?api_key=${API_KEY}&language=en-US`);
+        if (fallbackRes.ok) {
+            const { results } = await fallbackRes.json();
+            let t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+        }
+
         return null;
     } catch (err) {
         console.warn('Trailer fetch failed:', err);
@@ -862,9 +887,9 @@ function displayTrailer(trailer) {
     modal.onclick = e => e.target === modal && close();
 }
 
-async function handleTrailer(movieId, title) {
+async function handleTrailer(movieId, title, mediaType) {
     const year = 'N/A';
-    const trailer = await getMovieTrailer(movieId, title, year);
+    const trailer = await getMovieTrailer(movieId, title, year, mediaType);
     if (trailer) displayTrailer(trailer);
-    else alert('No trailer available');
+    else showNotification('No trailer available for this title.');
 }
