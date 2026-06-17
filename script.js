@@ -101,8 +101,9 @@ function setupEventListeners() {
                 alert('No movie selected');
                 return;
             }
-            const { id, title, release_date } = currentMovie;
+            const { id, title, release_date, media_type } = currentMovie;
             const year = release_date ? release_date.slice(0, 4) : 'N/A';
+            const mType = media_type || 'movie';
 
             getMovieTrailer(id, title, year, mType).then(trailer => {
                 if (trailer) displayTrailer(trailer);
@@ -218,7 +219,7 @@ async function renderWatchlist() {
                     </div>
                 </div>
                 <div class="movie-overlay">
-                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')">Watch Trailer</button>
+                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}', 'movie')">Watch Trailer</button>
                     <button class="btn btn-secondary">Download</button>
                     <button class="btn btn-secondary watchlist-btn">Remove</button>
                 </div>
