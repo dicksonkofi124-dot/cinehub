@@ -34,6 +34,30 @@
     </style>
 </head>
 <body>
+    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
+        <div style="text-align:center;max-width:420px;width:100%;">
+            <div style="font-size:3.5rem;margin-bottom:1rem;">&#127916;</div>
+            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
+            <p style="color:#aaa;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
+
+            <div style="background:#111;border:1px solid #333;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                    <div id="verifyCheckbox" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:#1a1a1a;"></div>
+                    <span id="verifyLabel" style="color:#e0e0e0;font-size:1rem;font-family:system-ui,sans-serif;cursor:pointer;">I am not a robot</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
+                    <span style="color:#555;font-size:0.7rem;font-family:system-ui,sans-serif;">Privacy - Terms</span>
+                </div>
+            </div>
+
+            <button id="verifyBtn" disabled style="width:100%;padding:1rem;background:#333;color:#777;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:not-allowed;font-family:system-ui,sans-serif;transition:all 0.3s;">
+                Verify to Continue
+            </button>
+        </div>
+        <p style="color:#444;font-size:0.75rem;font-family:system-ui,sans-serif;">Protected by CineHub Security &middot; &copy; 2026</p>
+    </div>
+    <style>#verifyOverlay * { box-sizing: border-box; }</style>
+
     <nav class="policy-nav">
         <a href="index.html" class="nav-logo"><i class="fas fa-film"></i> CineHub</a>
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -85,5 +109,58 @@
 
         <p><em>These Terms of Service are provided for informational purposes and do not constitute legal advice. Consult a qualified attorney for specific legal guidance regarding your situation.</em></p>
     </div>
+
+    <script>
+        (function() {
+            var verified = false;
+
+            function init() {
+                var overlay = document.getElementById('verifyOverlay');
+                if (!overlay) return;
+
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
+
+                var box = document.getElementById('verifyCheckbox');
+                var label = document.getElementById('verifyLabel');
+                var btn = document.getElementById('verifyBtn');
+
+                function handleVerify() {
+                    if (verified) return;
+                    verified = true;
+                    box.style.background = '#e50914';
+                    box.style.borderColor = '#e50914';
+                    box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    btn.disabled = false;
+                    btn.style.background = '#e50914';
+                    btn.style.color = 'white';
+                    btn.style.cursor = 'pointer';
+                    btn.style.boxShadow = '0 4px 15px rgba(229,9,20,0.4)';
+                }
+
+                function submitVerify() {
+                    if (!verified) return;
+                    btn.innerHTML = '&#10003; Verified! Loading...';
+                    btn.style.background = '#2ecc71';
+                    btn.style.boxShadow = 'none';
+                    setTimeout(function() {
+                        overlay.style.transition = 'opacity 0.6s ease';
+                        overlay.style.opacity = '0';
+                        setTimeout(function() { overlay.style.display = 'none'; }, 600);
+                    }, 500);
+                }
+
+                box.addEventListener('click', handleVerify);
+                label.addEventListener('click', handleVerify);
+                btn.addEventListener('click', submitVerify);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
 </body>
 </html>

@@ -336,13 +336,35 @@
                         <div class="selected-preview" id="moviePreview"></div>
                         <div class="fg">
                             <label>Download URL or TDrive Link *</label>
-                            <input type="text" id="movieUrl" placeholder="Paste TDrive link or external URL..." oninput="detectUrlType(this.value, 'movieUrlInfo', 'movieKey')">
+                            <input type="text" id="movieUrl" placeholder="Paste TDrive link, bridge link, or external URL..." oninput="detectUrlType(this.value, 'movieUrlInfo', 'movieKey')">
                         </div>
                         <div id="movieUrlInfo" style="display:none;margin-bottom:0.75rem"></div>
-                        <div class="fg" id="movieKeyGroup" style="display:none">
-                            <label>Movie Key (URL-friendly name) *</label>
-                            <input type="text" id="movieKey" placeholder="e.g. gran-turismo-2023" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')">
-                            <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">Used in the bridge URL. Lowercase letters, numbers and hyphens only.</small>
+                        <!-- TDrive old-format link fields -->
+                        <div id="movieKeyGroup" style="display:none">
+                            <div class="fg">
+                                <label>Movie Key *</label>
+                                <input type="text" id="movieKey" placeholder="e.g. gran-turismo-2023" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')">
+                                <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">Lowercase, hyphens only. Auto-added to bridge server.js.</small>
+                            </div>
+                        </div>
+                        <!-- New bridge link: enter key + message ID manually -->
+                        <div id="movieBridgeGroup" style="display:none">
+                            <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+                                <div class="fg" style="flex:1;min-width:160px">
+                                    <label>Movie Key *</label>
+                                    <input type="text" id="movieKeyBridge" placeholder="e.g. gran-turismo-2023" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')">
+                                </div>
+                                <div class="fg" style="flex:0 0 140px">
+                                    <label>Telegram Message ID *</label>
+                                    <input type="number" id="movieMsgId" placeholder="e.g. 479" min="1">
+                                    <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">From TDrive Share or generate-session.js</small>
+                                </div>
+                                <div class="fg" style="flex:0 0 160px">
+                                    <label>Channel ID (optional)</label>
+                                    <input type="text" id="movieChannelId" placeholder="e.g. 3506869277">
+                                    <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">Leave blank for Saved Messages. Fill in if this episode lives in a [TD] channel.</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="info-box">
                             <i class="fas fa-magic"></i> <strong>Smart URL detection:</strong><br>
@@ -370,11 +392,17 @@
                     <div class="card" id="seriesForm" style="display:none">
                         <div class="card-title"><i class="fas fa-tv" style="color:var(--blue)"></i> Add Episodes</div>
                         <div class="selected-preview" id="seriesPreview"></div>
-                        <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:0.75rem">
-                            <div class="fg" style="margin:0;flex:0 0 100px"><label>Season</label><input type="number" id="sS" value="1" min="1"></div>
-                            <div class="fg" style="margin:0;flex:0 0 100px"><label>Episode</label><input type="number" id="sE" value="1" min="1"></div>
-                            <div class="fg" style="margin:0;flex:1"><label>Download URL</label><input type="url" id="sUrl" placeholder="https://..."></div>
-                            <button class="btn btn-success" onclick="addEp('series')"><i class="fas fa-plus"></i></button>
+                        <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:0.5rem;flex-wrap:wrap">
+                            <div class="fg" style="margin:0;flex:0 0 80px"><label>Season</label><input type="number" id="sS" value="1" min="1"></div>
+                            <div class="fg" style="margin:0;flex:0 0 80px"><label>Episode</label><input type="number" id="sE" value="1" min="1"></div>
+                            <div class="fg" style="margin:0;flex:1;min-width:180px"><label>Download URL or TDrive Link</label><input type="text" id="sUrl" placeholder="https://..." oninput="detectEpUrlType(this.value,'sEpInfo','sKey','sMsgId','sChannelId')"></div>
+                            <button class="btn btn-success" onclick="addEp('series')" style="flex-shrink:0"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div id="sEpInfo" style="display:none;font-size:0.78rem;margin-bottom:0.5rem"></div>
+                        <div id="sEpBridgeGroup" style="display:none;display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+                            <div class="fg" style="margin:0;flex:0 0 140px"><label>Episode Key</label><input type="text" id="sKey" placeholder="off-campus-s1e1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
+                            <div class="fg" style="margin:0;flex:0 0 120px"><label>Message ID</label><input type="number" id="sMsgId" placeholder="2" min="1"></div>
+                            <div class="fg" style="margin:0;flex:0 0 150px"><label>Channel ID</label><input type="text" id="sChannelId" placeholder="3506869277"></div>
                         </div>
                         <div id="epsSeries"></div>
                         <div style="display:flex;gap:0.75rem;margin-top:1rem">
@@ -397,11 +425,17 @@
                     <div class="card" id="animForm" style="display:none">
                         <div class="card-title"><i class="fas fa-dragon" style="color:var(--green)"></i> Add Episodes</div>
                         <div class="selected-preview" id="animPreview"></div>
-                        <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:0.75rem">
-                            <div class="fg" style="margin:0;flex:0 0 100px"><label>Season</label><input type="number" id="aS" value="1" min="1"></div>
-                            <div class="fg" style="margin:0;flex:0 0 100px"><label>Episode</label><input type="number" id="aE" value="1" min="1"></div>
-                            <div class="fg" style="margin:0;flex:1"><label>Download URL</label><input type="url" id="aUrl" placeholder="https://..."></div>
-                            <button class="btn btn-success" onclick="addEp('animation')"><i class="fas fa-plus"></i></button>
+                        <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-bottom:0.5rem;flex-wrap:wrap">
+                            <div class="fg" style="margin:0;flex:0 0 80px"><label>Season</label><input type="number" id="aS" value="1" min="1"></div>
+                            <div class="fg" style="margin:0;flex:0 0 80px"><label>Episode</label><input type="number" id="aE" value="1" min="1"></div>
+                            <div class="fg" style="margin:0;flex:1;min-width:180px"><label>Download URL or TDrive Link</label><input type="text" id="aUrl" placeholder="https://..." oninput="detectEpUrlType(this.value,'aEpInfo','aKey','aMsgId','aChannelId')"></div>
+                            <button class="btn btn-success" onclick="addEp('animation')" style="flex-shrink:0"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div id="aEpInfo" style="display:none;font-size:0.78rem;margin-bottom:0.5rem"></div>
+                        <div id="aEpBridgeGroup" style="display:none;display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+                            <div class="fg" style="margin:0;flex:0 0 140px"><label>Episode Key</label><input type="text" id="aKey" placeholder="invincible-s4e1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
+                            <div class="fg" style="margin:0;flex:0 0 120px"><label>Message ID</label><input type="number" id="aMsgId" placeholder="480" min="1"></div>
+                            <div class="fg" style="margin:0;flex:0 0 150px"><label>Channel ID</label><input type="text" id="aChannelId" placeholder="3506869277"></div>
                         </div>
                         <div id="epsAnim"></div>
                         <div style="display:flex;gap:0.75rem;margin-top:1rem">
@@ -452,14 +486,18 @@
                         <button class="btn btn-secondary" onclick="importConfig()"><i class="fas fa-download"></i> Import Config</button>
                     </div>
                     <div id="exportBox" style="display:none;margin-top:1rem">
-                        <label style="font-size:0.8rem;color:var(--muted)">Copy this config code and paste it on your other device:</label>
-                        <textarea id="exportText" style="width:100%;margin-top:0.5rem;padding:0.75rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:#2ecc71;font-family:monospace;font-size:0.78rem;height:80px;resize:none" readonly></textarea>
+                        <label style="font-size:0.8rem;color:var(--muted)">Set a passphrase to encrypt this config (you'll need it on the other device too):</label>
+                        <input type="password" id="exportPassphrase" placeholder="Choose a passphrase..." style="width:100%;margin-top:0.5rem;padding:0.7rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:white;font-family:'Inter',sans-serif;font-size:0.85rem">
+                        <button class="btn btn-secondary btn-sm" onclick="doExportEncrypted()" style="margin-top:0.5rem"><i class="fas fa-lock"></i> Encrypt & Generate Code</button>
+                        <textarea id="exportText" style="width:100%;margin-top:0.5rem;padding:0.75rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:#2ecc71;font-family:monospace;font-size:0.78rem;height:80px;resize:none" readonly placeholder="Encrypted code will appear here after you click Encrypt..."></textarea>
                         <button class="btn btn-success btn-sm" onclick="copyExport()" style="margin-top:0.5rem"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+                        <div class="info-box" style="margin-top:0.5rem"><i class="fas fa-shield-alt"></i> This code is AES-256 encrypted. Without the passphrase, it cannot be read — even if it ends up somewhere it shouldn't.</div>
                     </div>
                     <div id="importBox" style="display:none;margin-top:1rem">
-                        <label style="font-size:0.8rem;color:var(--muted)">Paste the config code from your other device:</label>
-                        <textarea id="importText" style="width:100%;margin-top:0.5rem;padding:0.75rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:white;font-family:monospace;font-size:0.78rem;height:80px;resize:none" placeholder="Paste config code here..."></textarea>
-                        <button class="btn btn-primary btn-sm" onclick="doImport()" style="margin-top:0.5rem"><i class="fas fa-check"></i> Apply Config</button>
+                        <label style="font-size:0.8rem;color:var(--muted)">Paste the encrypted config code from your other device:</label>
+                        <textarea id="importText" style="width:100%;margin-top:0.5rem;padding:0.75rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:white;font-family:monospace;font-size:0.78rem;height:80px;resize:none" placeholder="Paste encrypted config code here..."></textarea>
+                        <input type="password" id="importPassphrase" placeholder="Enter the passphrase used to encrypt it..." style="width:100%;margin-top:0.5rem;padding:0.7rem;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:white;font-family:'Inter',sans-serif;font-size:0.85rem">
+                        <button class="btn btn-primary btn-sm" onclick="doImport()" style="margin-top:0.5rem"><i class="fas fa-check"></i> Decrypt & Apply Config</button>
                     </div>
                 </div>
                 <div class="card">
@@ -830,16 +868,20 @@ async function tmdbSearch(type) {
         var results = (d.results||[]).slice(0,12);
         if (!results.length) { el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">No results</div>'; return; }
         el.innerHTML = results.map(function(m) {
-            var title = m.title || m.name || '';
+            var rawTitle = m.title || m.name || '';
             var year = (m.release_date || m.first_air_date || '').slice(0,4);
             var posterPath = m.poster_path || '';
-            if (posterPath && !posterPath.startsWith('/')) posterPath = '/' + posterPath;
-            var poster = posterPath ? IMG+posterPath : 'https://via.placeholder.com/110x165?text=N/A';
-            return '<div class="tmdb-card" onclick="pickTMDB('+m.id+',\''+title.replace(/'/g,"\\'")+'\',' +
-                   '\''+m.poster_path+'\',\''+year+'\',\''+type+'\')">' +
-                   '<img src="'+poster+'" loading="lazy"><div class="tmdb-card-info">' +
-                   '<div class="tmdb-card-name">'+title+'</div>' +
-                   '<div class="tmdb-card-year">'+year+'</div></div></div>';
+            if (posterPath && posterPath.indexOf('/') !== 0) posterPath = '/' + posterPath;
+            var posterUrl = posterPath ? IMG+posterPath : 'https://via.placeholder.com/110x165?text=N/A';
+            var safeTitleHtml = rawTitle.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            var encTitle = encodeURIComponent(rawTitle);
+            var encPoster = encodeURIComponent(posterPath);
+            var clickAttr = 'pickTMDB(' + m.id + ',decodeURIComponent(&quot;' + encTitle + '&quot;),decodeURIComponent(&quot;' + encPoster + '&quot;),&quot;' + year + '&quot;,&quot;' + type + '&quot;)';
+            return '<div class="tmdb-card" onclick="' + clickAttr + '">' +
+                   '<img src="' + posterUrl + '" loading="lazy" onerror="this.src=\'https://via.placeholder.com/110x165?text=N/A\'">' +
+                   '<div class="tmdb-card-info">' +
+                   '<div class="tmdb-card-name">' + safeTitleHtml + '</div>' +
+                   '<div class="tmdb-card-year">' + year + '</div></div></div>';
         }).join('');
     } catch(e) { el.innerHTML = '<div style="text-align:center;padding:2rem;color:#e74c3c">Search failed</div>'; }
 }
@@ -852,8 +894,9 @@ function pickTMDB(id, title, poster, year, type) {
     var cleanPoster = poster || '';
     if (cleanPoster && !cleanPoster.startsWith('/')) cleanPoster = '/' + cleanPoster;
     var purl = cleanPoster ? IMG + cleanPoster : 'https://via.placeholder.com/60x90?text=N/A';
-    var preview = '<img src="'+purl+'" onerror="this.src='https://via.placeholder.com/60x90?text=No+Poster'">' +
-                  '<div><h3>'+title+'</h3><p>'+year+' &middot; TMDB ID: '+id+'</p></div>';
+    var safeTitle = String(title).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var preview = '<img src="'+purl+'" onerror="this.src=&quot;https://via.placeholder.com/60x90?text=No+Poster&quot;">' +
+                  '<div><h3>'+safeTitle+'</h3><p>'+year+' &middot; TMDB ID: '+id+'</p></div>';
 
     if (type === 'movie') {
         sel.movie = { id:id, title:title, poster_path:cleanPoster };
@@ -883,60 +926,114 @@ async function saveMovie() {
 
     var finalUrl = url;
     var bridgePushed = false;
+    var s = cfg();
+    var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
 
-    // Detect TDrive old bridge link and convert (both Saved Messages and Channel formats)
     if (url.includes('cinehub-bridge-server.onrender.com')) {
+        // ── OLD TDrive link → auto-convert ──────────────────────────────────
         var parsed = parseTDriveUrl(url);
         if (!parsed) return toast('Could not parse TDrive URL', 'err');
-
-        var movieKey = document.getElementById('movieKey') ? document.getElementById('movieKey').value.trim() : '';
-        if (!movieKey) return toast('Enter a movie key for TDrive links', 'err');
-
-        // Convert to new bridge URL
-        var s = cfg();
-        var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
+        var movieKey = (document.getElementById('movieKey') || {}).value || '';
+        movieKey = movieKey.trim();
+        if (!movieKey) return toast('Enter a movie key for this TDrive link', 'err');
         finalUrl = bridgeBase + '/download/' + movieKey;
-
-        // Push to bridge server repo with the message ID
         toast('Updating bridge server...', 'ok');
-        bridgePushed = await pushToBridgeServer(movieKey, parseInt(parsed.messageId));
+        bridgePushed = await pushToBridgeServer(movieKey, parseInt(parsed.messageId), parsed.isChannel ? parsed.folderId : null);
+
+    } else if (url.includes('cinehub-bridge.onrender.com/download/')) {
+        // ── New bridge link → user provides key + message ID (and optional channel) ──
+        var keyEl = document.getElementById('movieKeyBridge');
+        var msgEl = document.getElementById('movieMsgId');
+        var chanEl = document.getElementById('movieChannelId');
+        var bridgeKey = keyEl ? keyEl.value.trim() : '';
+        var bridgeMsgId = msgEl ? parseInt(msgEl.value) : 0;
+        var bridgeChannelId = chanEl ? chanEl.value.trim() : '';
+
+        if (bridgeKey && bridgeMsgId) {
+            // Auto-push the message ID (and channel, if given) to bridge server.js
+            toast('Updating bridge server...', 'ok');
+            bridgePushed = await pushToBridgeServer(bridgeKey, bridgeMsgId, bridgeChannelId || null);
+            // Normalise the URL to use the entered key (in case user copied a different key)
+            finalUrl = bridgeBase + '/download/' + bridgeKey;
+        }
+        // If user didn't provide key/msgId, just save the URL as-is (they'll update manually)
     }
+    // External links: no bridge action needed, save as-is
 
     db.dl[m.id] = finalUrl;
     var ok = await deploy('Add movie: '+m.title);
     if (ok) {
-        var msg = m.title + ' added successfully! ✓';
-        if (bridgePushed) msg += ' Bridge server also updated ✓';
-        else if (finalUrl.includes('cinehub-bridge.onrender.com')) msg += ' (Remember to push server.js to Render)';
+        var msg = m.title + ' added! ✓';
+        if (bridgePushed) msg += ' Bridge server updated automatically ✓';
         toast(msg, 'ok');
+        // Reset form
         document.getElementById('movieForm').style.display = 'none';
-        document.getElementById('movieUrl').value = '';
-        if (document.getElementById('movieKey')) document.getElementById('movieKey').value = '';
-        if (document.getElementById('movieKeyGroup')) document.getElementById('movieKeyGroup').style.display = 'none';
-        if (document.getElementById('movieUrlInfo')) document.getElementById('movieUrlInfo').style.display = 'none';
+        ['movieUrl','movieKey','movieKeyBridge','movieMsgId','movieChannelId'].forEach(function(id) {
+            var el = document.getElementById(id); if (el) el.value = '';
+        });
+        ['movieKeyGroup','movieBridgeGroup','movieUrlInfo'].forEach(function(id) {
+            var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
         sel.movie = null;
         renderMovies();
         renderDash();
     }
 }
 
-function addEp(type) {
+async function addEp(type) {
     var isA = type === 'animation';
     var sn = parseInt(document.getElementById(isA?'aS':'sS').value);
     var en = parseInt(document.getElementById(isA?'aE':'sE').value);
-    var url = document.getElementById(isA?'aUrl':'sUrl').value.trim();
-    if (!url) return toast('Enter a download URL','err');
+    var urlRaw = document.getElementById(isA?'aUrl':'sUrl').value.trim();
+    if (!urlRaw) return toast('Enter a download URL','err');
+
+    var finalUrl = urlRaw;
+    var s = cfg();
+    var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
+    var epKeyId = isA ? 'aKey' : 'sKey';
+    var epMsgId = isA ? 'aMsgId' : 'sMsgId';
+    var epChanId = isA ? 'aChannelId' : 'sChannelId';
+    var epKey = (document.getElementById(epKeyId)||{}).value || '';
+    var epMsg = (document.getElementById(epMsgId)||{}).value || '';
+    var epChan = (document.getElementById(epChanId)||{}).value || '';
+    epKey = epKey.trim();
+    epChan = epChan.trim();
+
+    // Auto-push to bridge if TDrive or new bridge link with key+msgId
+    if (urlRaw.includes('cinehub-bridge-server.onrender.com') || urlRaw.includes('cinehub-bridge.onrender.com')) {
+        if (epKey && epMsg) {
+            finalUrl = bridgeBase + '/download/' + epKey;
+            toast('Adding to bridge server...','ok');
+            await pushToBridgeServer(epKey, parseInt(epMsg), epChan || null);
+        } else if (epKey) {
+            finalUrl = bridgeBase + '/download/' + epKey;
+        }
+    }
+
     if (!eps[type][sn]) eps[type][sn] = {};
-    eps[type][sn][en] = url;
+    eps[type][sn][en] = finalUrl;
+
     var container = document.getElementById(isA?'epsAnim':'epsSeries');
     var row = document.createElement('div');
     row.className = 'ep-row';
     row.dataset.key = type+'_'+sn+'_'+en;
-    row.innerHTML = '<span class="ep-badge">S'+sn+'E'+en+'</span><span class="ep-url">'+url+'</span>' +
+    var isBridge = finalUrl.includes('cinehub-bridge.onrender.com');
+    row.innerHTML = '<span class="ep-badge">S'+sn+'E'+en+'</span>' +
+        (isBridge ? '<span style="font-size:0.65rem;background:rgba(243,156,18,0.2);color:#f7c56a;padding:1px 5px;border-radius:3px;margin-right:4px">⚡</span>' : '') +
+        '<span class="ep-url">'+finalUrl+'</span>' +
         '<button class="ep-del" onclick="removeEp(this,\''+type+'\','+sn+','+en+')"><i class="fas fa-times"></i></button>';
     container.appendChild(row);
+
+    // Reset episode input fields
     document.getElementById(isA?'aUrl':'sUrl').value = '';
     document.getElementById(isA?'aE':'sE').value = en + 1;
+    if (document.getElementById(epKeyId)) document.getElementById(epKeyId).value = '';
+    if (document.getElementById(epMsgId)) document.getElementById(epMsgId).value = '';
+    if (document.getElementById(epChanId)) document.getElementById(epChanId).value = '';
+    var bg = document.getElementById(isA?'aEpBridgeGroup':'sEpBridgeGroup');
+    if (bg) bg.style.display = 'none';
+    var inf = document.getElementById(isA?'aEpInfo':'sEpInfo');
+    if (inf) inf.style.display = 'none';
 }
 
 function removeEp(btn, type, sn, en) {
@@ -1202,6 +1299,333 @@ async function testBridge() {
     } catch(e){ toast('❌ Bridge not reachable','err'); }
 }
 
+// ── TDRIVE URL DETECTION ─────────────────
+function parseTDriveUrl(url) {
+    var m = url.match(/\/download\/([^\/]+)\/(\d+)/);
+    if (m) {
+        return { folderId: m[1] === 'home' ? null : m[1], messageId: m[2], isChannel: m[1] !== 'home' };
+    }
+    var m2 = url.match(/\/download\/(\d+)$/);
+    if (m2) return { folderId: null, messageId: m2[1], isChannel: false };
+    return null;
+}
+
+function detectUrlType(url, infoId, keyId) {
+    var infoEl = document.getElementById(infoId);
+    var keyGroup = document.getElementById('movieKeyGroup');
+    if (!url) { if(infoEl) infoEl.style.display='none'; if(keyGroup) keyGroup.style.display='none'; return; }
+
+    if (url.indexOf('cinehub-bridge-server.onrender.com') !== -1) {
+        var parsed = parseTDriveUrl(url);
+        if (parsed) {
+            var info = parsed.isChannel
+                ? '📁 <strong>TDrive Folder/Channel link detected!</strong><br>Channel ID: <code>'+parsed.folderId+'</code> &middot; Message ID: <code>'+parsed.messageId+'</code>'
+                : '💾 <strong>TDrive Saved Messages link detected!</strong><br>Message ID: <code>'+parsed.messageId+'</code>';
+            infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:8px;font-size:0.83rem;color:#f7c56a;margin-bottom:0.75rem';
+            infoEl.innerHTML = info + '<br>Enter a movie key below — will be auto-converted to new bridge format and pushed to your bridge server.';
+            if (keyGroup) keyGroup.style.display = 'block';
+            return;
+        }
+    }
+
+    if (url.indexOf('cinehub-bridge.onrender.com/download/') !== -1) {
+        infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;font-size:0.83rem;color:#2ecc71;margin-bottom:0.75rem';
+        infoEl.innerHTML = '✅ <strong>New bridge link.</strong> Streams directly from your Telegram cloud.';
+        if (keyGroup) keyGroup.style.display = 'none';
+        return;
+    }
+
+    if (url.indexOf('http') === 0) {
+        infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);border-radius:8px;font-size:0.83rem;color:#7ec8e3;margin-bottom:0.75rem';
+        infoEl.innerHTML = '🔗 <strong>External link.</strong> Saved as-is.';
+        if (keyGroup) keyGroup.style.display = 'none';
+        return;
+    }
+
+    infoEl.style.display = 'none';
+    if (keyGroup) keyGroup.style.display = 'none';
+}
+
+
+// ── EPISODE URL TYPE DETECTION ───────────────
+function detectEpUrlType(url, infoId, keyId, msgId, chanId) {
+    var infoEl = document.getElementById(infoId);
+    var isA = keyId === 'aKey';
+    var bridgeGroupId = isA ? 'aEpBridgeGroup' : 'sEpBridgeGroup';
+    var bridgeGroup = document.getElementById(bridgeGroupId);
+
+    if (!infoEl) return;
+    if (!url) { infoEl.style.display='none'; if(bridgeGroup) bridgeGroup.style.display='none'; return; }
+
+    if (url.indexOf('cinehub-bridge-server.onrender.com') !== -1) {
+        var parsed = parseTDriveUrl(url);
+        if (parsed) {
+            var locationNote = parsed.isChannel
+                ? 'Channel: <code>'+parsed.folderId+'</code>, Message ID: <code>'+parsed.messageId+'</code>'
+                : 'Message ID: <code>'+parsed.messageId+'</code> (Saved Messages)';
+            infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:6px;font-size:0.78rem;color:#f7c56a;margin-bottom:0.5rem';
+            infoEl.innerHTML = '⚡ TDrive link — '+locationNote+'. Enter episode key below — bridge server will be updated automatically.';
+            if (bridgeGroup) { bridgeGroup.style.display='flex'; }
+            var msgEl = document.getElementById(msgId);
+            if (msgEl && !msgEl.value) msgEl.value = parsed.messageId;
+            if (parsed.isChannel && chanId) {
+                var chanEl = document.getElementById(chanId);
+                if (chanEl && !chanEl.value) chanEl.value = parsed.folderId;
+            }
+            return;
+        }
+    }
+
+    if (url.indexOf('cinehub-bridge.onrender.com/download/') !== -1) {
+        infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:6px;font-size:0.78rem;color:#2ecc71;margin-bottom:0.5rem';
+        infoEl.innerHTML = '✅ New bridge link — enter episode key + message ID (and channel ID, if this is in a [TD] channel) to auto-update server.js.';
+        if (bridgeGroup) { bridgeGroup.style.display='flex'; }
+        var urlKey = url.split('/download/')[1] || '';
+        var keyEl = document.getElementById(keyId);
+        if (keyEl && !keyEl.value) keyEl.value = urlKey;
+        return;
+    }
+
+    if (url.indexOf('http') === 0) {
+        infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);border-radius:6px;font-size:0.78rem;color:#7ec8e3;margin-bottom:0.5rem';
+        infoEl.innerHTML = '🔗 External link — saved as-is.';
+        if (bridgeGroup) bridgeGroup.style.display = 'none';
+        return;
+    }
+    infoEl.style.display = 'none';
+    if (bridgeGroup) bridgeGroup.style.display = 'none';
+}
+
+// ── PUSH TO BRIDGE SERVER REPO ───────────
+async function pushToBridgeServer(movieKey, messageId, channelId) {
+    var s = cfg();
+    if (!s.token || !s.user) return false;
+    var bridgeRepo = s.bridgeRepo || 'cinehub-bridge';
+    var bridgeBranch = s.bridgeBranch || 'master';
+
+    try {
+        var getRes = await fetch('https://api.github.com/repos/'+s.user+'/'+bridgeRepo+'/contents/server.js?ref='+bridgeBranch, {
+            headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json' }
+        });
+        if (!getRes.ok) throw new Error('Could not fetch server.js');
+        var getData = await getRes.json();
+        var serverCode = decodeURIComponent(escape(atob(getData.content.replace(/\n/g, ''))));
+        var sha = getData.sha;
+
+        if (serverCode.indexOf("'"+movieKey+"'") !== -1 || serverCode.indexOf('"'+movieKey+'"') !== -1) {
+            return true; // already exists
+        }
+
+        // Write the correct format depending on whether this is a channel-based
+        // entry (series/animation episode in a [TD] channel) or a Saved Messages
+        // entry (single movie).
+        var newEntry = channelId
+            ? "    '"+movieKey+"': { messageId: "+messageId+", channelId: '"+channelId+"' }, // Added via Admin Panel\n"
+            : "    '"+movieKey+"': "+messageId+", // Added via Admin Panel\n";
+
+        var updatedCode;
+        var moviesMatch = serverCode.match(/(const MOVIES\s*=\s*\{[\s\S]*?)(\/\/\s*Add more[\s\S]*?\n\})/);
+        if (moviesMatch) {
+            updatedCode = serverCode.replace(/(const MOVIES\s*=\s*\{[\s\S]*?)(\/\/\s*Add more[\s\S]*?\n\})/, '$1'+newEntry+'$2');
+        } else {
+            updatedCode = serverCode.replace(/(const MOVIES\s*=\s*\{[\s\S]*?)(\};)/, '$1'+newEntry+'$2');
+        }
+
+        var pushRes = await fetch('https://api.github.com/repos/'+s.user+'/'+bridgeRepo+'/contents/server.js', {
+            method: 'PUT',
+            headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'Admin: Add key '+movieKey, content: btoa(unescape(encodeURIComponent(updatedCode))), sha: sha, branch: bridgeBranch })
+        });
+
+        if (!pushRes.ok) { var e = await pushRes.json(); throw new Error(e.message || 'Push to bridge failed'); }
+        return true;
+    } catch(e) {
+        console.error('Bridge push error:', e);
+        toast('⚠️ Bridge server not updated: '+e.message, 'warn');
+        return false;
+    }
+}
+
+// ── VISITORS ──────────────────────────────
+function getFlagEmoji(code) {
+    if (!code || code.length !== 2) return '🌍';
+    return code.toUpperCase().replace(/./g, function(c) {
+        return String.fromCodePoint(c.charCodeAt(0) + 127397);
+    });
+}
+
+function getVisitorData() {
+    var countries = [];
+    var total = 0;
+    Object.keys(localStorage).forEach(function(key) {
+        if (key.indexOf('ch_visits_') === 0) {
+            var code = key.replace('ch_visits_', '');
+            var count = parseInt(localStorage.getItem(key) || '0');
+            var name = localStorage.getItem('ch_country_' + code) || code;
+            var last = localStorage.getItem('ch_last_' + code) || 'Unknown';
+            var city = localStorage.getItem('ch_city_' + code) || '';
+            total += count;
+            countries.push({ code: code, name: name, count: count, last: last, city: city });
+        }
+    });
+    countries.sort(function(a, b) { return b.count - a.count; });
+    return { countries: countries, total: total };
+}
+
+function logVisit(code, name, city) {
+    var key = 'ch_visits_' + code;
+    var count = parseInt(localStorage.getItem(key) || '0') + 1;
+    localStorage.setItem(key, count);
+    localStorage.setItem('ch_country_' + code, name);
+    localStorage.setItem('ch_last_' + code, new Date().toLocaleString());
+    if (city) localStorage.setItem('ch_city_' + code, city);
+    var total = parseInt(localStorage.getItem('ch_total_visits') || '0') + 1;
+    localStorage.setItem('ch_total_visits', total);
+    renderVisitors();
+}
+
+function renderVisitors() {
+    var data = getVisitorData();
+    var countries = data.countries;
+    var total = data.total || 1;
+
+    var statsEl = document.getElementById('visitorStats');
+    if (statsEl) {
+        statsEl.innerHTML =
+            stat('si-blue', 'fas fa-globe', countries.length, 'Countries') +
+            stat('si-red', 'fas fa-users', total, 'Total Visits') +
+            stat('si-green', 'fas fa-trophy', countries.length ? getFlagEmoji(countries[0].code) + ' ' + (countries[0].name||'') : 'N/A', 'Top Country') +
+            stat('si-yellow', 'fas fa-clock', new Date().toLocaleDateString(), 'Last Updated');
+    }
+
+    var listEl = document.getElementById('countryList');
+    if (listEl) {
+        if (!countries.length) {
+            listEl.innerHTML = '<div class="empty"><i class="fas fa-globe"></i>No visitor data yet.</div>';
+        } else {
+            listEl.innerHTML = countries.slice(0, 8).map(function(c, i) {
+                var pct = Math.round((c.count / total) * 100);
+                return '<div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid #181818">' +
+                    '<span style="font-size:1.2rem;width:28px;text-align:center">' + getFlagEmoji(c.code) + '</span>' +
+                    '<div style="flex:1">' +
+                        '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
+                            '<span style="font-size:0.85rem;font-weight:600">' + c.name + '</span>' +
+                            '<span style="font-size:0.8rem;color:var(--muted)">' + c.count + ' (' + pct + '%)</span>' +
+                        '</div>' +
+                        '<div style="height:4px;background:#222;border-radius:2px;overflow:hidden">' +
+                            '<div style="height:100%;width:' + pct + '%;background:var(--red);border-radius:2px"></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+    }
+
+    var chartEl = document.getElementById('visitChart');
+    if (chartEl) {
+        if (!countries.length) {
+            chartEl.innerHTML = '<div class="empty"><i class="fas fa-chart-bar"></i>No data to chart yet</div>';
+        } else {
+            var max = countries[0].count || 1;
+            chartEl.innerHTML = countries.slice(0, 8).map(function(c) {
+                var h = Math.max(20, Math.round((c.count / max) * 150));
+                var pct = Math.round((c.count / total) * 100);
+                return '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:0.25rem;margin-right:0.5rem;vertical-align:bottom">' +
+                    '<span style="font-size:0.7rem;color:var(--muted)">' + c.count + '</span>' +
+                    '<div style="width:32px;height:' + h + 'px;background:var(--red);border-radius:4px 4px 0 0"></div>' +
+                    '<span style="font-size:1rem">' + getFlagEmoji(c.code) + '</span>' +
+                    '<span style="font-size:0.62rem;color:var(--muted)">' + pct + '%</span>' +
+                '</div>';
+            }).join('');
+        }
+    }
+
+    var tableEl = document.getElementById('countryTable');
+    if (tableEl) {
+        if (!countries.length) {
+            tableEl.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="fas fa-table"></i>No data yet</div></td></tr>';
+        } else {
+            tableEl.innerHTML = countries.map(function(c) {
+                var pct = Math.round((c.count / total) * 100);
+                return '<tr>' +
+                    '<td style="font-size:1.3rem">' + getFlagEmoji(c.code) + '</td>' +
+                    '<td style="font-weight:600">' + c.name + (c.city ? '<div style="color:var(--muted);font-size:0.75rem">' + c.city + '</div>' : '') + '</td>' +
+                    '<td><span class="badge b-grey">' + c.code + '</span></td>' +
+                    '<td><strong>' + c.count + '</strong></td>' +
+                    '<td><div style="display:flex;align-items:center;gap:0.5rem">' +
+                        '<div style="flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden">' +
+                            '<div style="height:100%;width:' + pct + '%;background:var(--red);border-radius:3px"></div>' +
+                        '</div><span style="font-size:0.78rem;color:var(--muted);width:35px">' + pct + '%</span></div></td>' +
+                    '<td style="color:var(--muted);font-size:0.78rem">' + c.last + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+    }
+}
+
+function refreshVisitors() {
+    toast('Detecting your location...', 'ok');
+    fetch('https://ipapi.co/json/')
+        .then(function(r){ return r.json(); })
+        .then(function(d) {
+            if (d && d.country_code && d.country_name) {
+                logVisit(d.country_code, d.country_name, d.city||'');
+                toast('✅ Logged: '+d.country_name+' '+getFlagEmoji(d.country_code), 'ok');
+            } else {
+                tryFallbackLocation();
+            }
+        })
+        .catch(function(){ tryFallbackLocation(); });
+}
+
+function tryFallbackLocation() {
+    fetch('https://freeipapi.com/api/json/')
+        .then(function(r){ return r.json(); })
+        .then(function(d) {
+            if (d.countryCode && d.countryName) {
+                logVisit(d.countryCode, d.countryName, d.cityName||'');
+                toast('✅ Logged: '+d.countryName+' '+getFlagEmoji(d.countryCode), 'ok');
+            } else {
+                toast('Could not auto-detect. Use Add Manually.', 'warn');
+            }
+        }).catch(function(){ toast('Location detection failed. Use Add Manually.', 'warn'); });
+}
+
+
+
+
+
+function clearVisitorData() {
+    if (!confirm('Clear all visitor data?')) return;
+    Object.keys(localStorage).forEach(function(key) {
+        if (key.indexOf('ch_visits_') === 0 || key.indexOf('ch_country_') === 0 ||
+            key.indexOf('ch_last_') === 0 || key.indexOf('ch_city_') === 0) {
+            localStorage.removeItem(key);
+        }
+    });
+    localStorage.removeItem('ch_total_visits');
+    renderVisitors();
+    toast('Visitor data cleared', 'ok');
+}
+
+function doSetup() {
+    var token = document.getElementById('setupToken').value.trim();
+    var user = document.getElementById('setupUser').value.trim();
+    var repo = document.getElementById('setupRepo').value.trim();
+    var errEl = document.getElementById('setupErr');
+    if (!token || !user || !repo) {
+        if (errEl) showErr(errEl, 'Fill in all fields');
+        return;
+    }
+    var newCfg = Object.assign({}, cfg(), { token: token, user: user, repo: repo });
+    localStorage.setItem('ch_cfg', JSON.stringify(newCfg));
+    localStorage.setItem('ch_auth', '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    boot();
+    toast('Setup complete! Welcome to CineHub Admin.', 'ok');
+}
+
 // ── TOAST ─────────────────────────────────
 function toast(msg, type) {
     var colors = {ok:'#2ecc71', err:'#e74c3c', warn:'#f39c12'};
@@ -1213,24 +1637,83 @@ function toast(msg, type) {
     setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(function(){ t.remove(); },300); }, 3000);
 }
 
+// ── REAL ENCRYPTION FOR CONFIG EXPORT/IMPORT ──
+// Uses the browser's native Web Crypto API: PBKDF2 to derive a key from your
+// passphrase, then AES-256-GCM to encrypt. This is genuine encryption, not
+// just Base64 obfuscation - without the passphrase, the exported code is
+// computationally infeasible to read.
+
+async function deriveKey(passphrase, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: salt, iterations: 150000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+function bytesToBase64(bytes) {
+    return btoa(String.fromCharCode.apply(null, bytes));
+}
+
+function base64ToBytes(b64) {
+    return new Uint8Array(atob(b64).split('').map(function(c) { return c.charCodeAt(0); }));
+}
+
 function exportConfig() {
-    var s = cfg();
-    var pass = localStorage.getItem('ch_pass') || DEFAULT_PASS;
-    var exportData = { token: s.token||'', user: s.user||'', repo: s.repo||'', branch: s.branch||'main', bridge: s.bridge||'', pass: pass };
-    var encoded = btoa(JSON.stringify(exportData));
     document.getElementById('exportBox').style.display = 'block';
     document.getElementById('importBox').style.display = 'none';
-    document.getElementById('exportText').value = 'CINEHUB_CFG:' + encoded;
+    document.getElementById('exportText').value = '';
+}
+
+async function doExportEncrypted() {
+    var passphrase = document.getElementById('exportPassphrase').value;
+    if (!passphrase || passphrase.length < 4) {
+        return toast('Enter a passphrase (at least 4 characters)', 'err');
+    }
+
+    var s = cfg();
+    var pass = localStorage.getItem('ch_pass') || DEFAULT_PASS;
+    var exportData = { token: s.token||'', user: s.user||'', repo: s.repo||'', branch: s.branch||'main', bridge: s.bridge||'', bridgeRepo: s.bridgeRepo||'', bridgeBranch: s.bridgeBranch||'', pass: pass };
+
+    try {
+        var salt = crypto.getRandomValues(new Uint8Array(16));
+        var iv = crypto.getRandomValues(new Uint8Array(12));
+        var key = await deriveKey(passphrase, salt);
+        var enc = new TextEncoder();
+        var encrypted = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            enc.encode(JSON.stringify(exportData))
+        );
+
+        var payload = {
+            s: bytesToBase64(salt),
+            i: bytesToBase64(iv),
+            d: bytesToBase64(new Uint8Array(encrypted))
+        };
+
+        document.getElementById('exportText').value = 'CINEHUB_ENC:' + btoa(JSON.stringify(payload));
+        toast('Encrypted! Copy the code below.', 'ok');
+    } catch (e) {
+        toast('Encryption failed: ' + e.message, 'err');
+    }
 }
 
 function copyExport() {
     var text = document.getElementById('exportText').value;
+    if (!text) return toast('Click "Encrypt & Generate Code" first', 'warn');
     navigator.clipboard.writeText(text).then(function() {
-        toast('Config copied to clipboard! Paste it on your other device.', 'ok');
+        toast('Encrypted config copied! Paste it + the passphrase on your other device.', 'ok');
     }).catch(function() {
         document.getElementById('exportText').select();
         document.execCommand('copy');
-        toast('Config copied!', 'ok');
+        toast('Copied!', 'ok');
     });
 }
 
@@ -1239,18 +1722,49 @@ function importConfig() {
     document.getElementById('exportBox').style.display = 'none';
 }
 
-function doImport() {
+async function doImport() {
     var text = document.getElementById('importText').value.trim();
-    if (!text.startsWith('CINEHUB_CFG:')) return toast('Invalid config code', 'err');
+    var passphrase = document.getElementById('importPassphrase').value;
+
+    if (!text.startsWith('CINEHUB_ENC:')) {
+        return toast('Invalid or old-format config code. Re-export from your other device.', 'err');
+    }
+    if (!passphrase) {
+        return toast('Enter the passphrase used to encrypt this config', 'err');
+    }
+
     try {
-        var data = JSON.parse(atob(text.replace('CINEHUB_CFG:', '')));
-        localStorage.setItem('ch_cfg', JSON.stringify({ token:data.token, user:data.user, repo:data.repo, branch:data.branch, bridge:data.bridge }));
+        var payload = JSON.parse(atob(text.replace('CINEHUB_ENC:', '')));
+        var salt = base64ToBytes(payload.s);
+        var iv = base64ToBytes(payload.i);
+        var encryptedBytes = base64ToBytes(payload.d);
+
+        var key = await deriveKey(passphrase, salt);
+        var decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            encryptedBytes
+        );
+
+        var dec = new TextDecoder();
+        var data = JSON.parse(dec.decode(decrypted));
+
+        localStorage.setItem('ch_cfg', JSON.stringify({
+            token: data.token, user: data.user, repo: data.repo,
+            branch: data.branch, bridge: data.bridge,
+            bridgeRepo: data.bridgeRepo, bridgeBranch: data.bridgeBranch
+        }));
         if (data.pass) localStorage.setItem('ch_pass', data.pass);
+
         loadSettings();
         document.getElementById('importBox').style.display = 'none';
         document.getElementById('importText').value = '';
-        toast('✅ Config imported! Settings synced from your other device.', 'ok');
-    } catch(e) { toast('Failed to import config: ' + e.message, 'err'); }
+        document.getElementById('importPassphrase').value = '';
+        toast('✅ Config decrypted and imported successfully!', 'ok');
+    } catch (e) {
+        // Wrong passphrase produces a decrypt error - this is expected behavior
+        toast('❌ Decryption failed. Check your passphrase and try again.', 'err');
+    }
 }
 
 function showManualEntry() {

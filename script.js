@@ -4,8 +4,6 @@
 // ================= CONFIG =================
 const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
 const BASE_URL = 'https://api.themoviedb.org/3';
-const YOUTUBE_API_KEY = 'AIzaSyDu1y5xIX9-DblXaN7Ek7Y1Xg996ez0zwQ';
-const YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 let currentPage = 1;
@@ -101,9 +99,8 @@ function setupEventListeners() {
                 alert('No movie selected');
                 return;
             }
-            const { id, title, release_date, media_type } = currentMovie;
+            const { id, title, release_date } = currentMovie;
             const year = release_date ? release_date.slice(0, 4) : 'N/A';
-            const mType = media_type || 'movie';
 
             getMovieTrailer(id, title, year, mType).then(trailer => {
                 if (trailer) displayTrailer(trailer);
@@ -219,7 +216,7 @@ async function renderWatchlist() {
                     </div>
                 </div>
                 <div class="movie-overlay">
-                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}', 'movie')">Watch Trailer</button>
+                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')">Watch Trailer</button>
                     <button class="btn btn-secondary">Download</button>
                     <button class="btn btn-secondary watchlist-btn">Remove</button>
                 </div>
