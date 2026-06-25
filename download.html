@@ -255,18 +255,29 @@
                 actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
                 actionBtn.disabled = true;
 
-                const triggerAnchor = document.createElement('a');
-                triggerAnchor.href = targetDownloadUrl;
-                triggerAnchor.setAttribute('download', '');
-                triggerAnchor.target = '_blank';
-                document.body.appendChild(triggerAnchor);
-                triggerAnchor.click();
-                document.body.removeChild(triggerAnchor);
+                // Try multiple methods to ensure download works
+                try {
+                    // Method 1: Direct window.open (most reliable)
+                    window.open(targetDownloadUrl, '_blank');
+                    
+                    // Method 2: Create anchor as fallback
+                    const triggerAnchor = document.createElement('a');
+                    triggerAnchor.href = targetDownloadUrl;
+                    triggerAnchor.setAttribute('download', '');
+                    triggerAnchor.target = '_blank';
+                    triggerAnchor.style.display = 'none';
+                    document.body.appendChild(triggerAnchor);
+                    triggerAnchor.click();
+                    setTimeout(() => document.body.removeChild(triggerAnchor), 100);
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    alert('Download failed. Please try again or contact support.');
+                }
 
                 setTimeout(() => {
                     actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
                     actionBtn.disabled = false;
-                }, 5000);
+                }, 3000);
             };
 
         } else {
@@ -302,18 +313,12 @@
                     box.style.background = '#e50914';
                     box.style.borderColor = '#e50914';
                     box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                    btn.disabled = false;
-                    btn.style.background = '#e50914';
-                    btn.style.color = 'white';
-                    btn.style.cursor = 'pointer';
-                    btn.style.boxShadow = '0 4px 15px rgba(229,9,20,0.4)';
-                }
-
-                function submitVerify() {
-                    if (!verified) return;
                     btn.innerHTML = '&#10003; Verified! Loading...';
                     btn.style.background = '#2ecc71';
                     btn.style.boxShadow = 'none';
+                    btn.style.color = 'white';
+                    btn.style.cursor = 'default';
+                    
                     window.__cinehubVerified = true;
                     window.dispatchEvent(new Event('cinehub:verified'));
                     setTimeout(function() {
@@ -325,7 +330,6 @@
 
                 box.addEventListener('click', handleVerify);
                 label.addEventListener('click', handleVerify);
-                btn.addEventListener('click', submitVerify);
             }
 
             if (document.readyState === 'loading') {

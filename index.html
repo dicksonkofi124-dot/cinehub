@@ -329,18 +329,12 @@
                     box.style.background = '#e50914';
                     box.style.borderColor = '#e50914';
                     box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-                    btn.disabled = false;
-                    btn.style.background = '#e50914';
-                    btn.style.color = 'white';
-                    btn.style.cursor = 'pointer';
-                    btn.style.boxShadow = '0 4px 15px rgba(229,9,20,0.4)';
-                }
-
-                function submitVerify() {
-                    if (!verified) return;
                     btn.innerHTML = '&#10003; Verified! Loading...';
                     btn.style.background = '#2ecc71';
                     btn.style.boxShadow = 'none';
+                    btn.style.color = 'white';
+                    btn.style.cursor = 'default';
+                    
                     setTimeout(function() {
                         overlay.style.transition = 'opacity 0.6s ease';
                         overlay.style.opacity = '0';
@@ -350,7 +344,6 @@
 
                 box.addEventListener('click', handleVerify);
                 label.addEventListener('click', handleVerify);
-                btn.addEventListener('click', submitVerify);
             }
 
             if (document.readyState === 'loading') {
