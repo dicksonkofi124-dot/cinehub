@@ -94,20 +94,38 @@ function setupEventListeners() {
     // Trailer button handler
     document.addEventListener('click', e => {
         if (e.target.closest('.trailer-btn')) {
-            if (e.target.closest('#watchlistGrid')) return;
-            if (!currentMovie) {
-                alert('No movie selected');
+            const btn = e.target.closest('.trailer-btn');
+            const card = btn.closest('.movie-card');
+            
+            if (!card) {
+                // Fallback to modal trailer button
+                if (currentMovie) {
+                    const { id, title, release_date } = currentMovie;
+                    const year = release_date ? release_date.slice(0, 4) : 'N/A';
+                    const mType = currentMovie.media_type || 'movie';
+                    
+                    getMovieTrailer(id, title, year, mType).then(trailer => {
+                        if (trailer) displayTrailer(trailer);
+                        else showNotification('No trailer available');
+                    }).catch(err => {
+                        console.error(err);
+                        showNotification('Error loading trailer');
+                    });
+                }
                 return;
             }
-            const { id, title, release_date } = currentMovie;
-            const year = release_date ? release_date.slice(0, 4) : 'N/A';
 
-            getMovieTrailer(id, title, year, mType).then(trailer => {
+            const movieId = parseInt(card.dataset.movieId);
+            const movieTitle = card.dataset.movieTitle;
+            const mediaType = card.dataset.mediaType || 'movie';
+            const year = 'N/A';
+
+            getMovieTrailer(movieId, movieTitle, year, mediaType).then(trailer => {
                 if (trailer) displayTrailer(trailer);
-                else alert('No trailer available');
+                else showNotification('No trailer available');
             }).catch(err => {
                 console.error(err);
-                alert('Error loading trailer');
+                showNotification('Error loading trailer');
             });
         }
     });
@@ -115,6 +133,7 @@ function setupEventListeners() {
     // Watchlist button handler
     document.addEventListener('click', e => {
         if (e.target.closest('.watchlist-btn')) {
+            e.stopPropagation();
             const card = e.target.closest('.movie-card');
             const movieId = card ? parseInt(card.dataset.movieId) : currentMovie ? currentMovie.id : null;
             if (movieId) toggleWatchlist(movieId);
@@ -206,7 +225,7 @@ async function renderWatchlist() {
         const movies = await Promise.all(promises);
 
         grid.innerHTML = movies.map(movie => `
-            <div class="movie-card" data-movie-id="${movie.id}">
+            <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="movie">
                 <img src="${IMAGE_BASE_URL}${movie.poster_path}" alt="${movie.title}" class="movie-poster">
                 <div class="movie-info">
                     <h3 class="movie-title">${movie.title}</h3>
@@ -216,8 +235,6 @@ async function renderWatchlist() {
                     </div>
                 </div>
                 <div class="movie-overlay">
-                    <button class="btn btn-primary trailer-btn" onclick="handleTrailer(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')">Watch Trailer</button>
-                    <button class="btn btn-secondary">Download</button>
                     <button class="btn btn-secondary watchlist-btn">Remove</button>
                 </div>
             </div>
@@ -420,7 +437,7 @@ async function loadAnimations() {
 function showFallbackContent() {
     const fallback = [
         { id: 27205, title: "Inception", release_date: "2010-07-16", vote_average: 8.4, poster_path: "/9gk7adHYeL0O8xH0v4k6vXjX0.jpg" },
-        { id: 155, title: "The Dark Knight", release_date: "2008-07-18", vote_average: 8.5, poster_path: "/qJ2J5T5qXz0Xz0Xz0Xz0Xz0Xz0Xz0Xz0.jpg" },
+        { id: 155, title: "The Dark Knight", release_date: "2008-07-18", vote_average: 8.5, poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
         { id: 272, title: "Batman Begins", release_date: "2005-06-15", vote_average: 7.7, poster_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg" }
     ];
     displayMovies(fallback);
@@ -582,18 +599,18 @@ function displaySeriesModal(series) {
     document.getElementById('modalOverview').textContent = 'Select a season to view episodes';
 
     let seasonsHTML = '<h3 style="margin:15px 0 10px;color:#e50914;">Seasons</h3>';
-    
+
     if (series.seasons) {
         const seasonNumbers = Object.keys(series.seasons).sort((a, b) => a - b);
-        
+
         // Create dropdown selector
-        const seasonOptions = seasonNumbers.map(seasonNum => 
+        const seasonOptions = seasonNumbers.map(seasonNum =>
             `<option value="${seasonNum}">Season ${seasonNum}</option>`
         ).join('');
-        
+
         seasonsHTML += `
             <div class="season-selector-container">
-                <select id="seasonSelect" class="season-dropdown-select" onchange="displaySeasonEpisodes('${series.title}', this.value)">
+                <select id="seasonSelect" class="season-dropdown-select" data-series-title="${series.title.replace(/"/g, '&quot;')}">
                     <option value="">Select a season...</option>
                     ${seasonOptions}
                 </select>
@@ -603,6 +620,14 @@ function displaySeriesModal(series) {
     }
 
     document.getElementById('modalCast').innerHTML = seasonsHTML;
+
+    // Add event listener for season selection
+    const seasonSelect = document.getElementById('seasonSelect');
+    if (seasonSelect) {
+        seasonSelect.addEventListener('change', function() {
+            displaySeasonEpisodes(this.dataset.seriesTitle, this.value);
+        });
+    }
 
     // Hide the general download button for series since episodes have individual download buttons
     const downloadBtn = document.getElementById('downloadBtn');
@@ -656,18 +681,28 @@ function displaySeasonEpisodes(seriesTitle, seasonNum) {
     const episodesList = Object.keys(episodes).sort((a, b) => a - b).map(epNum => `
         <div class="episode-item">
             <span class="episode-number">Episode ${epNum}</span>
-            <button class="episode-download-btn" onclick="window.open('${episodes[epNum]}', '_blank')">
+            <button class="episode-download-btn" data-download-url="${episodes[epNum].replace(/"/g, '&quot;')}">
                 <i class="fas fa-download"></i> Download
             </button>
         </div>
     `).join('');
-    
+
     episodesContainer.innerHTML = `
         <div class="season-episodes-display">
             <h4 style="margin:1rem 0 0.5rem;color:#e50914;">Season ${seasonNum} Episodes</h4>
             ${episodesList}
         </div>
     `;
+
+    // Add event listeners for download buttons
+    episodesContainer.querySelectorAll('.episode-download-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.downloadUrl;
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    });
 }
 
 function displayMovieModal(movie) {
@@ -763,9 +798,10 @@ function createMovieCard(movie) {
 
     const year = movie.release_date ? movie.release_date.slice(0, 4) : 'N/A';
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+    const mediaType = movie.media_type || 'movie';
 
     return `
-        <div class="movie-card" data-movie-id="${movie.id}">
+        <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="${mediaType}">
             <img src="${poster}" alt="${movie.title}" class="movie-poster" loading="lazy">
             <div class="movie-info">
                 <h3 class="movie-title">${movie.title}</h3>
@@ -773,6 +809,9 @@ function createMovieCard(movie) {
                     <span>${year}</span>
                     <span class="rating">⭐ ${rating}</span>
                 </div>
+            </div>
+            <div class="movie-overlay">
+                <button class="btn btn-secondary watchlist-btn">Add to Watchlist</button>
             </div>
         </div>
     `;
@@ -819,13 +858,24 @@ async function getMovieTrailer(movieId, title, year, mediaType) {
         const videosRes = await fetch(`${BASE_URL}/${endpoint}/${movieId}/videos?api_key=${API_KEY}&language=en-US`);
         if (videosRes.ok) {
             const { results } = await videosRes.json();
+            console.log(`Found ${results.length} videos for ${title} (${movieId})`);
+
             let t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube' && v.official);
-            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Official Trailer' };
+            if (t) {
+                console.log(`Using official trailer: ${t.key}`);
+                return { source: 'youtube', key: t.key, name: t.name || 'Official Trailer' };
+            }
             t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+            if (t) {
+                console.log(`Using trailer: ${t.key}`);
+                return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+            }
             // If no trailer but results exist, try any YouTube video
             t = results.find(v => v.site === 'YouTube');
-            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Video' };
+            if (t) {
+                console.log(`Using any YouTube video: ${t.key}`);
+                return { source: 'youtube', key: t.key, name: t.name || 'Video' };
+            }
         }
 
         // If TV failed or returned nothing, try movie endpoint as fallback (and vice versa)
@@ -834,9 +884,13 @@ async function getMovieTrailer(movieId, title, year, mediaType) {
         if (fallbackRes.ok) {
             const { results } = await fallbackRes.json();
             let t = results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-            if (t) return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+            if (t) {
+                console.log(`Using fallback trailer: ${t.key}`);
+                return { source: 'youtube', key: t.key, name: t.name || 'Trailer' };
+            }
         }
 
+        console.log(`No trailer found for ${title} (${movieId})`);
         return null;
     } catch (err) {
         console.warn('Trailer fetch failed:', err);
@@ -856,17 +910,18 @@ function displayTrailer(trailer) {
         <div class="trailer-modal-content">
             <span class="trailer-close">×</span>
             <div class="trailer-container">
-                <iframe 
-                    src="https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1" 
+                <iframe
+                    id="trailerIframe"
+                    src=""
                     title="${trailer.name}"
                     frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen>
                 </iframe>
             </div>
             <div class="trailer-info">
                 <h3>${trailer.name || 'Trailer'}</h3>
-                <button class="btn btn-primary" onclick="window.open('https://www.youtube.com/watch?v=${trailer.key}', '_blank')">
+                <button class="btn btn-primary" id="watchOnYoutubeBtn">
                     Watch on YouTube
                 </button>
             </div>
@@ -876,7 +931,24 @@ function displayTrailer(trailer) {
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
 
+    // Set iframe source with simpler, more reliable parameters
+    const iframe = modal.querySelector('#trailerIframe');
+    iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&rel=0`;
+
+    // Add event listener for YouTube button
+    modal.querySelector('#watchOnYoutubeBtn').addEventListener('click', () => {
+        window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank');
+    });
+
+    // Handle iframe load errors
+    iframe.onerror = () => {
+        console.error('Trailer iframe failed to load');
+        showNotification('Trailer unavailable. Watch on YouTube instead.');
+    };
+
     const close = () => {
+        // Stop video by clearing src before removing
+        iframe.src = '';
         document.body.removeChild(modal);
         document.body.style.overflow = '';
     };

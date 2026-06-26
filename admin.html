@@ -509,6 +509,15 @@
                     <button class="btn btn-primary" onclick="changePass()"><i class="fas fa-key"></i> Update Password</button>
                 </div>
                 <div class="card">
+                    <div class="card-title"><i class="fas fa-globe" style="color:var(--red)"></i> Website Domain</div>
+                    <div class="info-box">Enter your website domain here. The admin panel will automatically update all necessary files when you change this. No manual code changes needed.</div>
+                    <div class="fg">
+                        <label>Website Domain URL</label>
+                        <input type="text" id="cfgDomain" placeholder="https://cinehub-jet-ten.vercel.app">
+                        <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">Include https:// and no trailing slash. This will update download links and share links automatically.</small>
+                    </div>
+                </div>
+                <div class="card">
                     <div class="card-title"><i class="fas fa-robot" style="color:var(--blue)"></i> Telegram Bridge Server</div>
                     <div class="info-box">The bridge server streams movies from your Telegram cloud. Settings here allow the admin panel to automatically update <code>server.js</code> on the bridge repo when you add a new movie.</div>
                     <div class="form-row">
@@ -704,6 +713,7 @@ function loadSettings() {
     if (s.user) document.getElementById('cfgUser').value = s.user;
     if (s.repo) document.getElementById('cfgRepo').value = s.repo;
     if (s.branch) document.getElementById('cfgBranch').value = s.branch;
+    if (s.domain) document.getElementById('cfgDomain').value = s.domain;
     if (s.bridge) document.getElementById('cfgBridge').value = s.bridge;
     if (s.bridgeRepo) document.getElementById('cfgBridgeRepo').value = s.bridgeRepo;
     if (s.bridgeBranch) document.getElementById('cfgBridgeBranch').value = s.bridgeBranch;
@@ -715,11 +725,13 @@ function saveSettings() {
         user: document.getElementById('cfgUser').value.trim(),
         repo: document.getElementById('cfgRepo').value.trim(),
         branch: document.getElementById('cfgBranch').value.trim() || 'main',
+        domain: document.getElementById('cfgDomain').value.trim(),
         bridge: document.getElementById('cfgBridge').value.trim(),
         bridgeRepo: document.getElementById('cfgBridgeRepo').value.trim() || 'cinehub-bridge',
         bridgeBranch: document.getElementById('cfgBridgeBranch').value.trim() || 'master',
     };
     localStorage.setItem('ch_cfg', JSON.stringify(s));
+    deployConfig(s);
     toast('Settings saved ✓','ok');
 }
 
@@ -728,6 +740,7 @@ function cfg() {
         user: 'dicksonkofi124-dot',
         repo: 'cinehub',
         branch: 'main',
+        domain: 'https://cinehub-jet-ten.vercel.app',
         bridge: 'https://cinehub-bridge.onrender.com',
         bridgeRepo: 'cinehub-bridge',
         bridgeBranch: 'master'
@@ -755,6 +768,55 @@ async function loadFromGH() {
         toast('Live data synced from GitHub ✓','ok');
     } catch(e) {
         toast('GitHub sync failed: '+e.message,'err');
+    }
+}
+
+async function deployConfig(settings) {
+    var s = cfg();
+    if (!s.token || !s.user || !s.repo) return;
+    
+    try {
+        // Build config.js content
+        var configContent = '// config.js — Website configuration managed by CineHub Admin\n// Updated automatically when settings change in admin panel\n\nwindow.CINEHUB_CONFIG = {\n';
+        configContent += '    // Website domain (used for download links and share links)\n';
+        configContent += '    domain: \'' + (settings.domain || 'https://cinehub-jet-ten.vercel.app') + '\',\n\n';
+        configContent += '    // Bridge server API URL (used for fetching download URLs)\n';
+        configContent += '    bridgeApi: \'' + (settings.bridge || 'https://cinehub-bridge.onrender.com') + '\'\n';
+        configContent += '};\n';
+
+        // Get current config.js SHA
+        var getRes = await fetch('https://api.github.com/repos/'+s.user+'/'+s.repo+'/contents/config.js?ref='+(s.branch||'main'), {
+            headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json' }
+        });
+        
+        var sha = null;
+        if (getRes.ok) {
+            var getData = await getRes.json();
+            sha = getData.sha;
+        }
+
+        // Push config.js to GitHub
+        var pushBody = {
+            message: 'Admin: Update config.js',
+            content: btoa(unescape(encodeURIComponent(configContent))),
+            branch: s.branch||'main'
+        };
+        if (sha) pushBody.sha = sha;
+
+        var pushRes = await fetch('https://api.github.com/repos/'+s.user+'/'+s.repo+'/contents/config.js', {
+            method: 'PUT',
+            headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(pushBody)
+        });
+
+        if (pushRes.ok) {
+            toast('Config deployed to GitHub ✓','ok');
+        } else {
+            console.error('Config deploy failed:', await pushRes.json());
+        }
+    } catch(e) {
+        console.error('Config deploy error:', e);
+        // Don't show error toast for config deploy failure - settings are still saved locally
     }
 }
 
@@ -938,7 +1000,7 @@ async function saveMovie() {
         if (!movieKey) return toast('Enter a movie key for this TDrive link', 'err');
         finalUrl = bridgeBase + '/download/' + movieKey;
         toast('Updating bridge server...', 'ok');
-        bridgePushed = await pushToBridgeServer(movieKey, parseInt(parsed.messageId), parsed.isChannel ? parsed.folderId : null);
+        bridgePushed = await pushToBridgeServer(movieKey, parseInt(parsed.messageId), parsed.isChannel ? parsed.folderId : null, m.title);
 
     } else if (url.includes('cinehub-bridge.onrender.com/download/')) {
         // ── New bridge link → user provides key + message ID (and optional channel) ──
@@ -952,7 +1014,7 @@ async function saveMovie() {
         if (bridgeKey && bridgeMsgId) {
             // Auto-push the message ID (and channel, if given) to bridge server.js
             toast('Updating bridge server...', 'ok');
-            bridgePushed = await pushToBridgeServer(bridgeKey, bridgeMsgId, bridgeChannelId || null);
+            bridgePushed = await pushToBridgeServer(bridgeKey, bridgeMsgId, bridgeChannelId || null, m.title);
             // Normalise the URL to use the entered key (in case user copied a different key)
             finalUrl = bridgeBase + '/download/' + bridgeKey;
         }
@@ -1004,7 +1066,9 @@ async function addEp(type) {
         if (epKey && epMsg) {
             finalUrl = bridgeBase + '/download/' + epKey;
             toast('Adding to bridge server...','ok');
-            await pushToBridgeServer(epKey, parseInt(epMsg), epChan || null);
+            var showTitle = type === 'series' ? (sel.series ? sel.series.title : '') : (sel.animation ? sel.animation.title : '');
+            var epFileName = showTitle + ' S' + sn + 'E' + en;
+            await pushToBridgeServer(epKey, parseInt(epMsg), epChan || null, epFileName);
         } else if (epKey) {
             finalUrl = bridgeBase + '/download/' + epKey;
         }
@@ -1397,7 +1461,7 @@ function detectEpUrlType(url, infoId, keyId, msgId, chanId) {
 }
 
 // ── PUSH TO BRIDGE SERVER REPO ───────────
-async function pushToBridgeServer(movieKey, messageId, channelId) {
+async function pushToBridgeServer(movieKey, messageId, channelId, fileName) {
     var s = cfg();
     if (!s.token || !s.user) return false;
     var bridgeRepo = s.bridgeRepo || 'cinehub-bridge';
@@ -1416,12 +1480,9 @@ async function pushToBridgeServer(movieKey, messageId, channelId) {
             return true; // already exists
         }
 
-        // Write the correct format depending on whether this is a channel-based
-        // entry (series/animation episode in a [TD] channel) or a Saved Messages
-        // entry (single movie).
-        var newEntry = channelId
-            ? "    '"+movieKey+"': { messageId: "+messageId+", channelId: '"+channelId+"' }, // Added via Admin Panel\n"
-            : "    '"+movieKey+"': "+messageId+", // Added via Admin Panel\n";
+        // New format: always use object format with messageId, channelId, and fileName
+        // This matches the TD channel share link generation format
+        var newEntry = "    '"+movieKey+"': { messageId: "+messageId+", channelId: "+(channelId ? "'"+channelId+"'" : 'null')+", fileName: '"+(fileName || movieKey).replace(/'/g, "\\'")+"' }, // Added via Admin Panel\n";
 
         var updatedCode;
         var moviesMatch = serverCode.match(/(const MOVIES\s*=\s*\{[\s\S]*?)(\/\/\s*Add more[\s\S]*?\n\})/);
