@@ -3,7 +3,7 @@
 
 const downloadLinks = {
     83533: "https://vdl.np-downloader.com/sdm_downloads/download-avatar-fire-and-ash-2025/",
-    269149: "https://cinehub-jet-ten.vercel.app/download.html?id=3",
+    269149: "https://cinehub-bridge.onrender.com/download/home/3",
     875828: "https://vdl.np-downloader.com/sdm_downloads/download-peaky-blinders-the-immortal-man-2026/",
     980489: "https://cinehub-bridge.onrender.com/download/gran-turismo-2023",
     1122573: "https://cinehub-bridge.onrender.com/download/in-the-grey",
