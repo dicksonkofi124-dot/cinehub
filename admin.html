@@ -991,7 +991,15 @@ async function saveMovie() {
     var s = cfg();
     var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
 
-    if (url.includes('cinehub-bridge-server.onrender.com')) {
+    var shareParsed = parseShareLink(url);
+    if (shareParsed) {
+        // ── Share link (TDrive Cloud "Copy Link") → direct bridge stream URL ──
+        // No movie key, no registry, no pushToBridgeServer call — the bridge's
+        // /download/home/:id and /download/:channelId/:id routes already work
+        // for any message ID without anything being registered first.
+        finalUrl = bridgeBase + '/download/' + (shareParsed.channelId || 'home') + '/' + shareParsed.messageId;
+
+    } else if (url.includes('cinehub-bridge-server.onrender.com')) {
         // ── OLD TDrive link → auto-convert ──────────────────────────────────
         var parsed = parseTDriveUrl(url);
         if (!parsed) return toast('Could not parse TDrive URL', 'err');
@@ -1061,8 +1069,14 @@ async function addEp(type) {
     epKey = epKey.trim();
     epChan = epChan.trim();
 
-    // Auto-push to bridge if TDrive or new bridge link with key+msgId
-    if (urlRaw.includes('cinehub-bridge-server.onrender.com') || urlRaw.includes('cinehub-bridge.onrender.com')) {
+    var epShareParsed = parseShareLink(urlRaw);
+    if (epShareParsed) {
+        // ── Share link (TDrive Cloud "Copy Link") → direct bridge stream URL ──
+        // No key, no registry — works for Saved Messages and any [TD] channel.
+        finalUrl = bridgeBase + '/download/' + (epShareParsed.channelId || 'home') + '/' + epShareParsed.messageId;
+
+    } else if (urlRaw.includes('cinehub-bridge-server.onrender.com') || urlRaw.includes('cinehub-bridge.onrender.com')) {
+        // Auto-push to bridge if TDrive or new bridge link with key+msgId
         if (epKey && epMsg) {
             finalUrl = bridgeBase + '/download/' + epKey;
             toast('Adding to bridge server...','ok');
@@ -1374,10 +1388,42 @@ function parseTDriveUrl(url) {
     return null;
 }
 
+// ── SHARE-LINK DETECTION (TDrive Cloud "Copy Link") ──────────────────────
+// Recognizes the self-contained download.html?msg=X&ch=Y&name=Z links
+// produced by Copy Link, for either Saved Messages (no ch) or a [TD]
+// channel (ch present). One link format, works everywhere — no movie
+// key, no bridge registry, no manual conversion.
+function parseShareLink(url) {
+    try {
+        var u = new URL(url, window.location.origin);
+        if (!/\/download\.html$/i.test(u.pathname)) return null;
+        var msg = u.searchParams.get('msg');
+        if (!msg) return null;
+        return {
+            messageId: msg,
+            channelId: u.searchParams.get('ch') || null,
+            fileName: u.searchParams.get('name') || null,
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
 function detectUrlType(url, infoId, keyId) {
     var infoEl = document.getElementById(infoId);
     var keyGroup = document.getElementById('movieKeyGroup');
     if (!url) { if(infoEl) infoEl.style.display='none'; if(keyGroup) keyGroup.style.display='none'; return; }
+
+    var shareParsed = parseShareLink(url);
+    if (shareParsed) {
+        var shareInfo = shareParsed.channelId
+            ? '📡 <strong>TD Channel share link detected!</strong><br>Channel ID: <code>'+shareParsed.channelId+'</code> &middot; Message ID: <code>'+shareParsed.messageId+'</code>'
+            : '💾 <strong>Saved Messages share link detected!</strong><br>Message ID: <code>'+shareParsed.messageId+'</code>';
+        infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;font-size:0.83rem;color:#2ecc71;margin-bottom:0.75rem';
+        infoEl.innerHTML = shareInfo + '<br>✅ Will auto-convert to a direct bridge link — no key, no extra steps.';
+        if (keyGroup) keyGroup.style.display = 'none';
+        return;
+    }
 
     if (url.indexOf('cinehub-bridge-server.onrender.com') !== -1) {
         var parsed = parseTDriveUrl(url);
@@ -1420,6 +1466,17 @@ function detectEpUrlType(url, infoId, keyId, msgId, chanId) {
 
     if (!infoEl) return;
     if (!url) { infoEl.style.display='none'; if(bridgeGroup) bridgeGroup.style.display='none'; return; }
+
+    var epShareParsed = parseShareLink(url);
+    if (epShareParsed) {
+        var epShareInfo = epShareParsed.channelId
+            ? 'Channel: <code>'+epShareParsed.channelId+'</code>, Message ID: <code>'+epShareParsed.messageId+'</code>'
+            : 'Message ID: <code>'+epShareParsed.messageId+'</code> (Saved Messages)';
+        infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:6px;font-size:0.78rem;color:#2ecc71;margin-bottom:0.5rem';
+        infoEl.innerHTML = '✅ Share link — '+epShareInfo+'. Will auto-convert — no key needed.';
+        if (bridgeGroup) bridgeGroup.style.display = 'none';
+        return;
+    }
 
     if (url.indexOf('cinehub-bridge-server.onrender.com') !== -1) {
         var parsed = parseTDriveUrl(url);
