@@ -199,6 +199,20 @@
         const BRIDGE_API = window.CINEHUB_CONFIG ? window.CINEHUB_CONFIG.bridgeApi : 'https://cinehub-bridge.onrender.com';
 
         const urlParams = new URLSearchParams(window.location.search);
+
+        // Direct, already-resolved URL (used by TDrive Cloud's in-app "Download"
+        // button) — no bridge call needed, the URL is ready to use as-is.
+        const linkParam = urlParams.get('link');
+
+        // Self-contained share-link format used by TDrive Cloud's "Copy Link".
+        // msg = Telegram message ID, ch = TD channel ID (omitted for Saved Messages),
+        // name = file name. Maps directly to the bridge's always-working stream
+        // routes — no registry lookup, nothing to register, nothing to forget.
+        const msgParam = urlParams.get('msg');
+        const chParam = urlParams.get('ch');
+        const nameParam = urlParams.get('name');
+
+        // Legacy catalog format: TMDB movie ID, added via the admin panel.
         const messageId = urlParams.get('id');
 
         const titleEl = document.getElementById('displayTitle');
@@ -209,232 +223,121 @@
 
         let targetDownloadUrl = "";
 
-        // New format: fetch from bridge server using message ID
-        if (messageId) {
-            // Show loading state
-            textEl.textContent = "Fetching download link from bridge server...";
-            subtextEl.textContent = `Message ID: ${messageId}`;
+        // Shared "ready to download" UI + multi-method download trigger.
+        // Every link format below funnels into this single implementation.
+        function showDownloadReady(url, sourceInfo) {
+            targetDownloadUrl = url;
 
-            // Fetch download URL from bridge server
-            fetch(`${BRIDGE_API}/api/file/${messageId}`)
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error('File not found on bridge server');
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    if (data && data.downloadUrl) {
-                        targetDownloadUrl = data.downloadUrl;
-                        
-                        // Use file name from bridge server if available
-                        if (data.fileName) {
-                            titleEl.textContent = data.fileName;
-                        } else {
-                            titleEl.textContent = "Your Requested File";
-                        }
+            iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
+            iconEl.className = "";
+            textEl.textContent = "Download Ready!";
+            subtextEl.textContent = sourceInfo + " • Please verify you're human above, then click below to start your download.";
 
-                        // Display source information (TD Channel vs Saved Messages)
-                        var sourceInfo = "";
-                        if (data.channelId && data.channelId !== null && data.channelId !== 0) {
-                            sourceInfo = "Source: TD Channel #" + data.channelId;
-                        } else {
-                            sourceInfo = "Source: Saved Messages";
-                        }
+            actionBtn.disabled = true;
+            actionBtn.innerHTML = '<i class="fas fa-lock"></i> Verify to Unlock Download';
 
-                        // Prepare the button, but keep it disabled until human verification passes
-                        iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
-                        iconEl.className = "";
-                        textEl.textContent = "Download Ready!";
-                        subtextEl.textContent = sourceInfo + " • Please verify you're human above, then click below to start your download.";
+            function unlockDownloadButton() {
+                actionBtn.disabled = false;
+                actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+            }
 
-                        actionBtn.disabled = true;
-                        actionBtn.innerHTML = '<i class="fas fa-lock"></i> Verify to Unlock Download';
+            if (window.__cinehubVerified) {
+                unlockDownloadButton();
+            } else {
+                window.addEventListener('cinehub:verified', unlockDownloadButton);
+            }
 
-                        function unlockDownloadButton() {
-                            actionBtn.disabled = false;
-                            actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                        }
+            actionBtn.onclick = () => {
+                if (actionBtn.disabled) return;
+                actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
+                actionBtn.disabled = true;
 
-                        // If verification already completed (script below ran first), unlock now
-                        if (window.__cinehubVerified) {
-                            unlockDownloadButton();
-                        } else {
-                            window.addEventListener('cinehub:verified', unlockDownloadButton);
-                        }
+                // Try multiple methods to ensure download works across platforms
+                let downloadAttempted = false;
+                let downloadSuccess = false;
 
-                        actionBtn.onclick = () => {
-                            if (actionBtn.disabled) return;
-                            actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
-                            actionBtn.disabled = true;
-
-                            // Try multiple methods to ensure download works across platforms
-                            let downloadAttempted = false;
-                            let downloadSuccess = false;
-
-                            // Method 1: Direct window.open (works on mobile, may be blocked on desktop)
-                            try {
-                                const newWindow = window.open(targetDownloadUrl, '_blank');
-                                if (newWindow && !newWindow.closed && typeof newWindow.closed !== 'undefined') {
-                                    downloadAttempted = true;
-                                    downloadSuccess = true;
-                                    console.log('Download started via window.open');
-                                } else {
-                                    console.log('window.open blocked or failed, trying fallback');
-                                }
-                            } catch (error) {
-                                console.log('window.open failed:', error);
-                            }
-
-                            // Method 2: Create anchor with download attribute (works for same-origin)
-                            if (!downloadSuccess) {
-                                try {
-                                    const triggerAnchor = document.createElement('a');
-                                    triggerAnchor.href = targetDownloadUrl;
-                                    triggerAnchor.setAttribute('download', '');
-                                    triggerAnchor.setAttribute('target', '_blank');
-                                    triggerAnchor.style.display = 'none';
-                                    document.body.appendChild(triggerAnchor);
-                                    triggerAnchor.click();
-                                    setTimeout(() => document.body.removeChild(triggerAnchor), 100);
-                                    downloadAttempted = true;
-                                    console.log('Download attempted via anchor click');
-                                } catch (error) {
-                                    console.log('Anchor click failed:', error);
-                                }
-                            }
-
-                            // Method 3: Hidden iframe (works for cross-origin on some browsers)
-                            if (!downloadSuccess) {
-                                try {
-                                    const iframe = document.createElement('iframe');
-                                    iframe.style.display = 'none';
-                                    iframe.src = targetDownloadUrl;
-                                    document.body.appendChild(iframe);
-                                    setTimeout(() => document.body.removeChild(iframe), 5000);
-                                    downloadAttempted = true;
-                                    console.log('Download attempted via iframe');
-                                } catch (error) {
-                                    console.log('Iframe method failed:', error);
-                                }
-                            }
-
-                            // Method 4: Direct location change (last resort)
-                            if (!downloadSuccess) {
-                                try {
-                                    window.location.href = targetDownloadUrl;
-                                    downloadAttempted = true;
-                                    console.log('Download attempted via location.href');
-                                } catch (error) {
-                                    console.log('Location change failed:', error);
-                                }
-                            }
-
-                            // Show manual link if all automatic methods failed
-                            if (!downloadAttempted) {
-                                console.error('All download methods failed');
-                                actionBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Download Failed';
-                                actionBtn.style.background = '#e74c3c';
-                                
-                                // Show manual download link
-                                const manualLink = document.createElement('div');
-                                manualLink.style.cssText = 'margin-top:1rem;padding:1rem;background:#1a1a1a;border-radius:8px;border:1px solid #333;';
-                                manualLink.innerHTML = `
-                                    <p style="color:#aaa;font-size:0.85rem;margin-bottom:0.5rem">Automatic download failed. Click below:</p>
-                                    <a href="${targetDownloadUrl}" target="_blank" style="color:#e50914;font-weight:600;text-decoration:underline;">Open Download Link</a>
-                                `;
-                                actionBtn.parentNode.insertBefore(manualLink, actionBtn.nextSibling);
-                            } else {
-                                setTimeout(() => {
-                                    actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                                    actionBtn.disabled = false;
-                                }, 3000);
-                            }
-                        };
+                // Method 1: Direct window.open (works on mobile, may be blocked on desktop)
+                try {
+                    const newWindow = window.open(targetDownloadUrl, '_blank');
+                    if (newWindow && !newWindow.closed && typeof newWindow.closed !== 'undefined') {
+                        downloadAttempted = true;
+                        downloadSuccess = true;
+                        console.log('Download started via window.open');
                     } else {
-                        throw new Error('No download URL in response');
+                        console.log('window.open blocked or failed, trying fallback');
                     }
-                })
-                .catch(error => {
-                    console.error('Bridge server error:', error);
-                    
-                    // Fallback: try to look up in movies-data.js (for backward compatibility)
-                    const dlKey = window.downloadLinks && (window.downloadLinks[messageId] || window.downloadLinks[parseInt(messageId)]);
-                    
-                    if (dlKey) {
-                        targetDownloadUrl = dlKey;
-                        
-                        // Try to fetch movie title from TMDB (might be a TMDB ID)
-                        fetch(`${BASE_URL}/movie/${messageId}?api_key=${API_KEY}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data && data.title) {
-                                    titleEl.textContent = data.title;
-                                } else {
-                                    titleEl.textContent = "Your Requested Movie";
-                                }
-                            })
-                            .catch(() => {
-                                titleEl.textContent = "Your Requested Movie";
-                            });
+                } catch (error) {
+                    console.log('window.open failed:', error);
+                }
 
-                        iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
-                        iconEl.className = "";
-                        textEl.textContent = "Download Ready!";
-                        subtextEl.textContent = "Please verify you're human above, then click below to start your download.";
-
-                        actionBtn.disabled = true;
-                        actionBtn.innerHTML = '<i class="fas fa-lock"></i> Verify to Unlock Download';
-
-                        function unlockDownloadButton() {
-                            actionBtn.disabled = false;
-                            actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                        }
-
-                        if (window.__cinehubVerified) {
-                            unlockDownloadButton();
-                        } else {
-                            window.addEventListener('cinehub:verified', unlockDownloadButton);
-                        }
-
-                        actionBtn.onclick = () => {
-                            if (actionBtn.disabled) return;
-                            actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
-                            actionBtn.disabled = true;
-
-                            try {
-                                window.open(targetDownloadUrl, '_blank');
-                                const triggerAnchor = document.createElement('a');
-                                triggerAnchor.href = targetDownloadUrl;
-                                triggerAnchor.setAttribute('download', '');
-                                triggerAnchor.target = '_blank';
-                                triggerAnchor.style.display = 'none';
-                                document.body.appendChild(triggerAnchor);
-                                triggerAnchor.click();
-                                setTimeout(() => document.body.removeChild(triggerAnchor), 100);
-                            } catch (error) {
-                                console.error('Download failed:', error);
-                                alert('Download failed. Please try again or contact support.');
-                            }
-
-                            setTimeout(() => {
-                                actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                                actionBtn.disabled = false;
-                            }, 3000);
-                        };
-                    } else {
-                        // No valid download link found
-                        titleEl.textContent = "Error: Link Expired or Invalid";
-                        textEl.textContent = "No valid download link found.";
-                        subtextEl.textContent = "Please return to the homepage and select a valid movie.";
-                        iconEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #e50914;"></i>';
-                        iconEl.className = "";
-                        actionBtn.disabled = true;
-                        actionBtn.innerHTML = '<i class="fas fa-ban"></i> No Download Available';
+                // Method 2: Create anchor with download attribute (works for same-origin)
+                if (!downloadSuccess) {
+                    try {
+                        const triggerAnchor = document.createElement('a');
+                        triggerAnchor.href = targetDownloadUrl;
+                        triggerAnchor.setAttribute('download', '');
+                        triggerAnchor.setAttribute('target', '_blank');
+                        triggerAnchor.style.display = 'none';
+                        document.body.appendChild(triggerAnchor);
+                        triggerAnchor.click();
+                        setTimeout(() => document.body.removeChild(triggerAnchor), 100);
+                        downloadAttempted = true;
+                        console.log('Download attempted via anchor click');
+                    } catch (error) {
+                        console.log('Anchor click failed:', error);
                     }
-                });
-        } else {
-            // No valid ID found
+                }
+
+                // Method 3: Hidden iframe (works for cross-origin on some browsers)
+                if (!downloadSuccess) {
+                    try {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = targetDownloadUrl;
+                        document.body.appendChild(iframe);
+                        setTimeout(() => document.body.removeChild(iframe), 5000);
+                        downloadAttempted = true;
+                        console.log('Download attempted via iframe');
+                    } catch (error) {
+                        console.log('Iframe method failed:', error);
+                    }
+                }
+
+                // Method 4: Direct location change (last resort)
+                if (!downloadAttempted) {
+                    try {
+                        window.location.href = targetDownloadUrl;
+                        downloadAttempted = true;
+                        console.log('Download attempted via location.href');
+                    } catch (error) {
+                        console.log('Location change failed:', error);
+                    }
+                }
+
+                // Show manual link if all automatic methods failed
+                if (!downloadAttempted) {
+                    console.error('All download methods failed');
+                    actionBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Download Failed';
+                    actionBtn.style.background = '#e74c3c';
+
+                    // Show manual download link
+                    const manualLink = document.createElement('div');
+                    manualLink.style.cssText = 'margin-top:1rem;padding:1rem;background:#1a1a1a;border-radius:8px;border:1px solid #333;';
+                    manualLink.innerHTML = `
+                        <p style="color:#aaa;font-size:0.85rem;margin-bottom:0.5rem">Automatic download failed. Click below:</p>
+                        <a href="${targetDownloadUrl}" target="_blank" style="color:#e50914;font-weight:600;text-decoration:underline;">Open Download Link</a>
+                    `;
+                    actionBtn.parentNode.insertBefore(manualLink, actionBtn.nextSibling);
+                } else {
+                    setTimeout(() => {
+                        actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+                        actionBtn.disabled = false;
+                    }, 3000);
+                }
+            };
+        }
+
+        function showNotFoundError() {
             titleEl.textContent = "Error: Link Expired or Invalid";
             textEl.textContent = "No valid download link found.";
             subtextEl.textContent = "Please return to the homepage and select a valid movie.";
@@ -443,7 +346,73 @@
             actionBtn.disabled = true;
             actionBtn.innerHTML = '<i class="fas fa-ban"></i> No Download Available';
         }
+
+        if (linkParam) {
+            // ── Direct link (TDrive Cloud "Download" button) ──────────────────
+            // Already a complete, ready-to-use URL — just show it as ready.
+            titleEl.textContent = nameParam || "Your Requested File";
+            showDownloadReady(linkParam, "Direct download from your device.");
+
+        } else if (msgParam) {
+            // ── Direct share-link format (TDrive Cloud "Copy Link") ───────────
+            // Built straight from the bridge's stream routes — always works,
+            // nothing to register, nothing to keep in sync.
+            titleEl.textContent = nameParam || "Your Requested File";
+
+            const streamUrl = chParam
+                ? `${BRIDGE_API}/download/${chParam}/${msgParam}`
+                : `${BRIDGE_API}/download/home/${msgParam}`;
+            const sourceInfo = chParam ? ("Source: TD Channel #" + chParam) : "Source: Saved Messages";
+
+            showDownloadReady(streamUrl, sourceInfo);
+
+        } else if (messageId) {
+            // ── Legacy catalog format: TMDB movie ID, mapped via the admin panel ──
+            textEl.textContent = "Fetching download link from bridge server...";
+            subtextEl.textContent = `Message ID: ${messageId}`;
+
+            fetch(`${BRIDGE_API}/api/file/${messageId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('File not found on bridge server');
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && data.downloadUrl) {
+                        const sourceInfo = (data.channelId && data.channelId !== 0)
+                            ? "Source: TD Channel #" + data.channelId
+                            : "Source: Saved Messages";
+                        titleEl.textContent = data.fileName || "Your Requested File";
+                        showDownloadReady(data.downloadUrl, sourceInfo);
+                    } else {
+                        throw new Error('No download URL in response');
+                    }
+                })
+                .catch(error => {
+                    console.error('Bridge server error:', error);
+
+                    // Fallback: catalog entries added via the admin panel (movies-data.js)
+                    const dlKey = window.downloadLinks && (window.downloadLinks[messageId] || window.downloadLinks[parseInt(messageId)]);
+
+                    if (dlKey) {
+                        fetch(`${BASE_URL}/movie/${messageId}?api_key=${API_KEY}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                titleEl.textContent = (data && data.title) ? data.title : "Your Requested Movie";
+                            })
+                            .catch(() => {
+                                titleEl.textContent = "Your Requested Movie";
+                            });
+
+                        showDownloadReady(dlKey, "Secure download link verified by CineHub.");
+                    } else {
+                        showNotFoundError();
+                    }
+                });
+        } else {
+            showNotFoundError();
+        }
     </script>
+
 
     <script>
         (function() {
