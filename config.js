@@ -3,8 +3,10 @@
 
 window.CINEHUB_CONFIG = {
     // Website domain (used for download links and share links)
-    domain: 'https://cinehub-jet-ten.vercel.app',
+    // Configure via admin panel
+    domain: '',
     
     // Bridge server API URL (used for fetching download URLs)
-    bridgeApi: 'https://cinehub-bridge.onrender.com'
+    // Configure via admin panel
+    bridgeApi: ''
 };
