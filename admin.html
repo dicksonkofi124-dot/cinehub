@@ -109,7 +109,7 @@
         .tmdb-card.picked{border-color:var(--green)}
         .tmdb-card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
         .tmdb-card-info{padding:0.4rem}
-        .tmdb-card-name{font-size:0.7rem;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .tmdb-card-name{font-size:0.7rem;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
         .tmdb-card-year{font-size:0.62rem;color:var(--muted);margin-top:2px}
 
         /* SELECTED PREVIEW */
@@ -1416,11 +1416,19 @@ function detectUrlType(url, infoId, keyId) {
 
     var shareParsed = parseShareLink(url);
     if (shareParsed) {
+        // Auto-generate Movie Key from selected TMDB title + year
+        var movieKeyEl = document.getElementById('movieKey');
+        if (movieKeyEl && sel.movie && sel.movie.title) {
+            var releaseYear = sel.movie.release_date ? sel.movie.release_date.slice(0,4) : '';
+            var autoMovieKey = (sel.movie.title + (releaseYear ? '-' + releaseYear : ''))
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            movieKeyEl.value = autoMovieKey;
+        }
         var shareInfo = shareParsed.channelId
             ? '📡 <strong>TD Channel share link detected!</strong><br>Channel ID: <code>'+shareParsed.channelId+'</code> &middot; Message ID: <code>'+shareParsed.messageId+'</code>'
             : '💾 <strong>Saved Messages share link detected!</strong><br>Message ID: <code>'+shareParsed.messageId+'</code>';
         infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;font-size:0.83rem;color:#2ecc71;margin-bottom:0.75rem';
-        infoEl.innerHTML = shareInfo + '<br>✅ Will auto-convert to a direct bridge link — no key, no extra steps.';
+        infoEl.innerHTML = shareInfo + '<br>✅ All fields auto-filled — just hit Save & Deploy.';
         if (keyGroup) keyGroup.style.display = 'none';
         return;
     }
@@ -1465,15 +1473,45 @@ function detectEpUrlType(url, infoId, keyId, msgId, chanId) {
     var bridgeGroup = document.getElementById(bridgeGroupId);
 
     if (!infoEl) return;
-    if (!url) { infoEl.style.display='none'; if(bridgeGroup) bridgeGroup.style.display='none'; return; }
+    if (!url) {
+        infoEl.style.display='none';
+        if(bridgeGroup) bridgeGroup.style.display='none';
+        // Clear any previously auto-filled fields
+        var msgEl2 = document.getElementById(msgId);
+        var chanEl2 = document.getElementById(chanId);
+        var keyEl2 = document.getElementById(keyId);
+        if (msgEl2) msgEl2.value = '';
+        if (chanEl2) chanEl2.value = '';
+        if (keyEl2) keyEl2.value = '';
+        return;
+    }
 
     var epShareParsed = parseShareLink(url);
     if (epShareParsed) {
+        // Auto-fill Message ID
+        var msgEl = document.getElementById(msgId);
+        if (msgEl) msgEl.value = epShareParsed.messageId;
+        // Auto-fill Channel ID
+        var chanEl = document.getElementById(chanId);
+        if (chanEl) chanEl.value = epShareParsed.channelId || '';
+        // Auto-generate Episode Key from show title + S/E numbers
+        var keyEl = document.getElementById(keyId);
+        if (keyEl) {
+            var snId = isA ? 'aS' : 'sS';
+            var enId = isA ? 'aE' : 'sE';
+            var showObj = isA ? sel.animation : sel.series;
+            var showTitle = (showObj && showObj.title) ? showObj.title : '';
+            var sn = (document.getElementById(snId)||{}).value || '1';
+            var en = (document.getElementById(enId)||{}).value || '1';
+            var autoKey = (showTitle + '-s' + sn + 'e' + en)
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            keyEl.value = autoKey;
+        }
         var epShareInfo = epShareParsed.channelId
-            ? 'Channel: <code>'+epShareParsed.channelId+'</code>, Message ID: <code>'+epShareParsed.messageId+'</code>'
-            : 'Message ID: <code>'+epShareParsed.messageId+'</code> (Saved Messages)';
+            ? '📡 Channel <code>'+epShareParsed.channelId+'</code> · Message ID <code>'+epShareParsed.messageId+'</code>'
+            : '💾 Saved Messages · Message ID <code>'+epShareParsed.messageId+'</code>';
         infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:6px;font-size:0.78rem;color:#2ecc71;margin-bottom:0.5rem';
-        infoEl.innerHTML = '✅ Share link — '+epShareInfo+'. Will auto-convert — no key needed.';
+        infoEl.innerHTML = '✅ Share link detected — '+epShareInfo+'. All fields filled automatically.';
         if (bridgeGroup) bridgeGroup.style.display = 'none';
         return;
     }
