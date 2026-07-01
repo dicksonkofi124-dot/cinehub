@@ -8,5 +8,5 @@ window.CINEHUB_CONFIG = {
     
     // Bridge server API URL (used for fetching download URLs)
     // Configure via admin panel
-    bridgeApi: ''
+    bridgeApi: 'https://cinehub-bridge.onrender.com'
 };

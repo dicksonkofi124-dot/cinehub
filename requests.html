@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub - Request Movies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary: #e50914;
+            --primary-hover: #b20710;
+            --bg-dark: #0a0a0a;
+            --bg-card: #111111;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --border: #333333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .auth-section {
+            max-width: 450px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .auth-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .google-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            color: #333;
+            padding: 0.9rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .google-btn:hover {
+            background: #f1f1f1;
+            transform: translateY(-2px);
+        }
+
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .request-form {
+            max-width: 700px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: none;
+        }
+
+        .request-form.active {
+            display: block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-details h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            padding: 0.5rem 1rem;
+            background: rgba(229, 9, 20, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #333;
+            color: #777;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .my-requests {
+            margin-top: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .my-requests h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .request-item {
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .request-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .request-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+        }
+
+        .status-approved {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .status-rejected {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .empty-requests {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-film"></i> CineHub Movie Requests</h1>
+            <p>Request movies you'd like to see added to CineHub</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div id="authSection" class="auth-section">
+            <div class="auth-icon">
+                <i class="fab fa-google"></i>
+            </div>
+            <h2>Sign in to Request Movies</h2>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">You need to sign in with your Google account to submit movie requests</p>
+            <button id="googleSignInBtn" class="google-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Sign in with Google
+            </button>
+        </div>
+
+        <!-- Request Form Section -->
+        <div id="requestSection" class="request-form">
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
+                <div class="user-details">
+                    <h3 id="userName">User Name</h3>
+                    <p id="userEmail">user@email.com</p>
+                </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+
+            <h2 style="margin-bottom: 1.5rem;">Request a Movie</h2>
+            
+            <form id="movieRequestForm">
+                <div class="form-group">
+                    <label for="movieTitle">Movie Title *</label>
+                    <input type="text" id="movieTitle" placeholder="Enter the movie title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="movieYear">Release Year</label>
+                    <input type="number" id="movieYear" placeholder="e.g., 2024" min="1900" max="2030">
+                </div>
+
+                <div class="form-group">
+                    <label for="movieGenre">Genre</label>
+                    <select id="movieGenre">
+                        <option value="">Select a genre</option>
+                        <option value="action">Action</option>
+                        <option value="comedy">Comedy</option>
+                        <option value="drama">Drama</option>
+                        <option value="horror">Horror</option>
+                        <option value="sci-fi">Sci-Fi</option>
+                        <option value="thriller">Thriller</option>
+                        <option value="romance">Romance</option>
+                        <option value="animation">Animation</option>
+                        <option value="documentary">Documentary</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="movieReason">Why should we add this movie? *</label>
+                    <textarea id="movieReason" placeholder="Tell us why you'd like to see this movie on CineHub..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
+            </form>
+
+            <div class="my-requests">
+                <h2><i class="fas fa-history"></i> My Requests</h2>
+                <div id="myRequestsList">
+                    <div class="empty-requests">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>You haven't submitted any requests yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to CineHub
+            </a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration - Updated with actual Firebase project values
+        const firebaseConfig = {
+            apiKey: "AIzaSyCows2um0geyTZ7tSQzn-dxy74tr5X0zEg",
+            authDomain: "cinehub-requests-739a5.firebaseapp.com",
+            projectId: "cinehub-requests-739a5",
+            storageBucket: "cinehub-requests-739a5.firebasestorage.app",
+            messagingSenderId: "53577335198",
+            appId: "1:53577335198:web:db7215b72b1d59e197568f",
+            measurementId: "G-PYJZLBPV37"
+        };
+
+        // Simple Auth System (Fallback if Firebase not configured)
+        let useFirebase = false;
+        let currentUser = null;
+
+        try {
+            // Try to initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            useFirebase = true;
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.log('Firebase not configured, using simple auth system');
+            useFirebase = false;
+        }
+
+        // Simple Auth System (Email-based)
+        const simpleAuth = {
+            signIn: function(email, name) {
+                return new Promise((resolve, reject) => {
+                    if (!email || !name) {
+                        reject(new Error('Email and name are required'));
+                        return;
+                    }
+                    const user = {
+                        uid: 'user_' + Date.now(),
+                        displayName: name,
+                        email: email,
+                        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e50914&color=fff`
+                    };
+                    localStorage.setItem('simpleAuthUser', JSON.stringify(user));
+                    resolve(user);
+                });
+            },
+            signOut: function() {
+                localStorage.removeItem('simpleAuthUser');
+                return Promise.resolve();
+            },
+            getCurrentUser: function() {
+                const userStr = localStorage.getItem('simpleAuthUser');
+                return userStr ? JSON.parse(userStr) : null;
+            },
+            onAuthStateChanged: function(callback) {
+                // Simple implementation - check on load
+                const user = this.getCurrentUser();
+                callback(user);
+            }
+        };
+
+        // Unified Auth Interface
+        const authInterface = useFirebase ? firebase.auth() : simpleAuth;
+
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const requestSection = document.getElementById('requestSection');
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const movieRequestForm = document.getElementById('movieRequestForm');
+        const myRequestsList = document.getElementById('myRequestsList');
+
+        // Update auth section based on whether Firebase is configured
+        if (!useFirebase) {
+            // Show simple auth form instead of Google button
+            authSection.innerHTML = `
+                <div class="auth-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2>Sign in to Request Movies</h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Enter your details to submit movie requests</p>
+                <div style="margin-top: 1.5rem;">
+                    <input type="text" id="simpleName" placeholder="Your Name" style="width: 100%; padding: 0.9rem 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1rem; margin-bottom: 0.75rem; outline: none; font-family: 'Inter', sans-serif;">
+                    <input type="email" id="simpleEmail" placeholder="Your Email" style="width: 100%; padding: 0.9rem 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1rem; margin-bottom: 0.75rem; outline: none; font-family: 'Inter', sans-serif;">
+                    <button id="simpleSignInBtn" class="google-btn" style="width: 100%; margin-top: 0;">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </div>
+            `;
+        }
+
+        // Sign In Handler
+        if (useFirebase) {
+            // Google Sign-In
+            googleSignInBtn.addEventListener('click', () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                authInterface.signInWithPopup(provider)
+                    .then((result) => {
+                        console.log('User signed in:', result.user);
+                        showRequestSection(result.user);
+                    })
+                    .catch((error) => {
+                        console.error('Sign-in error:', error);
+                        alert('Sign-in failed. Please try again.');
+                    });
+            });
+        } else {
+            // Simple Email Sign-In
+            document.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'simpleSignInBtn') {
+                    const name = document.getElementById('simpleName').value.trim();
+                    const email = document.getElementById('simpleEmail').value.trim();
+                    
+                    if (!name || !email) {
+                        alert('Please enter your name and email');
+                        return;
+                    }
+                    
+                    simpleAuth.signIn(email, name)
+                        .then((user) => {
+                            console.log('User signed in:', user);
+                            showRequestSection(user);
+                        })
+                        .catch((error) => {
+                            console.error('Sign-in error:', error);
+                            alert('Sign-in failed. Please try again.');
+                        });
+                }
+            });
+        }
+
+        // Sign Out
+        logoutBtn.addEventListener('click', () => {
+            if (useFirebase) {
+                authInterface.signOut()
+                    .then(() => {
+                        showAuthSection();
+                    })
+                    .catch((error) => {
+                        console.error('Sign-out error:', error);
+                    });
+            } else {
+                simpleAuth.signOut()
+                    .then(() => {
+                        showAuthSection();
+                    })
+                    .catch((error) => {
+                        console.error('Sign-out error:', error);
+                    });
+            }
+        });
+
+        // Auth State Observer
+        if (useFirebase) {
+            authInterface.onAuthStateChanged((user) => {
+                if (user) {
+                    showRequestSection(user);
+                } else {
+                    showAuthSection();
+                }
+            });
+        } else {
+            // Check for existing session on load
+            const existingUser = simpleAuth.getCurrentUser();
+            if (existingUser) {
+                showRequestSection(existingUser);
+            }
+        }
+
+        function showRequestSection(user) {
+            authSection.style.display = 'none';
+            requestSection.classList.add('active');
+            
+            userAvatar.src = user.photoURL || 'https://via.placeholder.com/50';
+            userName.textContent = user.displayName || 'User';
+            userEmail.textContent = user.email;
+            
+            loadUserRequests(user.uid);
+        }
+
+        function showAuthSection() {
+            authSection.style.display = 'block';
+            requestSection.classList.remove('active');
+        }
+
+        // Submit Movie Request
+        movieRequestForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const user = useFirebase ? authInterface.currentUser : simpleAuth.getCurrentUser();
+            if (!user) {
+                alert('Please sign in to submit a request');
+                return;
+            }
+
+            const request = {
+                id: Date.now().toString(),
+                userId: user.uid,
+                userName: user.displayName,
+                userEmail: user.email,
+                userAvatar: user.photoURL,
+                movieTitle: document.getElementById('movieTitle').value,
+                movieYear: document.getElementById('movieYear').value,
+                movieGenre: document.getElementById('movieGenre').value,
+                movieReason: document.getElementById('movieReason').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            // Store request in localStorage (in production, use a database)
+            const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+            requests.push(request);
+            localStorage.setItem('movieRequests', JSON.stringify(requests));
+
+            // Reset form
+            movieRequestForm.reset();
+            
+            // Reload requests
+            loadUserRequests(user.uid);
+            
+            alert('Your request has been submitted successfully!');
+        });
+
+        // Load User's Requests
+        function loadUserRequests(userId) {
+            const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+            const userRequests = requests.filter(r => r.userId === userId);
+            
+            if (userRequests.length === 0) {
+                myRequestsList.innerHTML = `
+                    <div class="empty-requests">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>You haven't submitted any requests yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            myRequestsList.innerHTML = userRequests.map(request => `
+                <div class="request-item">
+                    <h3>${request.movieTitle} ${request.movieYear ? `(${request.movieYear})` : ''}</h3>
+                    <p><strong>Genre:</strong> ${request.movieGenre || 'Not specified'}</p>
+                    <p><strong>Reason:</strong> ${request.movieReason}</p>
+                    <p><strong>Submitted:</strong> ${new Date(request.createdAt).toLocaleDateString()}</p>
+                    <span class="status-badge status-${request.status}">${request.status.toUpperCase()}</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -150,7 +150,7 @@
 
             <div style="background:#111;border:1px solid #333;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-                    <div id="verifyCheckbox" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:#1a1a1a;"></div>
+                    <div id="verifyCheckbox" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
                     <span id="verifyLabel" style="color:#e0e0e0;font-size:1rem;font-family:system-ui,sans-serif;cursor:pointer;">I am not a robot</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            <button id="verifyBtn" disabled style="width:100%;padding:1rem;background:#333;color:#777;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:not-allowed;font-family:system-ui,sans-serif;transition:all 0.3s;">
+            <button id="verifyBtn" disabled style="width:100%;padding:1rem;background:#333;color:#777;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:not-allowed;font-family:system-ui,sans-serif;transition:0.2s;">
                 Verify to Continue
             </button>
         </div>
@@ -196,7 +196,7 @@
     <script>
         const API_KEY = '3fd2be6f0c70a2a598f084ddfb75487c';
         const BASE_URL = 'https://api.themoviedb.org/3';
-        const BRIDGE_API = window.CINEHUB_CONFIG?.bridgeApi || '';
+        const BRIDGE_API = window.CINEHUB_CONFIG?.bridgeApi || 'https://cinehub-bridge.onrender.com';
 
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -222,11 +222,119 @@
         const actionBtn = document.getElementById('actionBtn');
 
         let targetDownloadUrl = "";
+        let fileName = "download";
 
-        // Shared "ready to download" UI + multi-method download trigger.
-        // Every link format below funnels into this single implementation.
-        function showDownloadReady(url, sourceInfo) {
+        // Helper: Check if URL is cross-origin
+        function isCrossOrigin(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.origin !== window.location.origin;
+            } catch {
+                return true; // Default to cross-origin if parsing fails
+            }
+        }
+
+        // Helper: Trigger blob-based download (works in Chrome with proper CORS handling)
+        function downloadViaBlob(url, filename) {
+            console.log('Attempting blob download method:', url);
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    console.log('Response received, content-length:', response.headers.get('content-length'));
+                    return response.blob();
+                })
+                .then(blob => {
+                    console.log('Blob size:', blob.size, 'bytes');
+                    
+                    if (blob.size === 0) {
+                        console.warn('Blob is empty, falling back to window.open');
+                        window.open(url, '_blank');
+                        return;
+                    }
+                    
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                    console.log('Blob download completed successfully');
+                })
+                .catch(error => {
+                    console.error('Blob download failed:', error);
+                    console.log('Falling back to window.open');
+                    window.open(url, '_blank');
+                });
+        }
+
+        // Fallback: Direct window.open for problematic URLs
+        function downloadDirect(url, filename) {
+            console.log('Using direct download method:', url);
+            try {
+                window.open(url, '_blank');
+                console.log('Direct download triggered');
+            } catch (error) {
+                console.error('Direct download failed:', error);
+                alert('Download failed. Please try again or check your browser settings.');
+            }
+        }
+
+        // Helper: Trigger native download (direct link click)
+        function downloadNative(url, filename) {
+            console.log('Using native download method:', url);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('Native download triggered');
+        }
+
+        // Main download handler: Simplified approach for better reliability
+        function triggerDownload(url, filename) {
+            console.log('triggerDownload called with URL:', url, 'filename:', filename);
+            
+            if (!url) {
+                console.error('No URL provided for download');
+                alert('Download URL is missing. Please try again.');
+                return;
+            }
+            
+            // Try direct window.open first (most reliable for cross-origin)
+            console.log('Attempting direct download via window.open');
+            try {
+                const newWindow = window.open(url, '_blank');
+                if (newWindow) {
+                    console.log('Download window opened successfully');
+                } else {
+                    console.warn('Popup blocked, trying fallback method');
+                    // Fallback: create a link and click it
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    console.log('Fallback download triggered');
+                }
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Download failed. Please check your browser settings and try again.');
+            }
+        }
+
+        // Shows the "ready to download" UI. Once verified, the button enables download
+        function showDownloadReady(url, sourceInfo, downloadFileName) {
             targetDownloadUrl = url;
+            fileName = downloadFileName || "download";
 
             iconEl.innerHTML = '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>';
             iconEl.className = "";
@@ -237,104 +345,30 @@
             actionBtn.innerHTML = '<i class="fas fa-lock"></i> Verify to Unlock Download';
 
             function unlockDownloadButton() {
-                actionBtn.disabled = false;
-                actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+                // Replace button with clickable download trigger
+                const downloadBtn = document.createElement('button');
+                downloadBtn.id = 'actionBtn';
+                downloadBtn.className = 'btn-download';
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
+                downloadBtn.style.cursor = 'pointer';
+                downloadBtn.onclick = (e) => {
+                    e.preventDefault();
+                    console.log('Download button clicked, URL:', targetDownloadUrl, 'Filename:', fileName);
+                    triggerDownload(targetDownloadUrl, fileName);
+                };
+                
+                actionBtn.replaceWith(downloadBtn);
+                console.log('Download button unlocked and ready');
             }
 
+            // Set up the listener BEFORE checking if already verified
+            window.addEventListener('cinehub:verified', unlockDownloadButton);
+            
+            // If already verified, call immediately
             if (window.__cinehubVerified) {
+                console.log('Already verified, unlocking download button');
                 unlockDownloadButton();
-            } else {
-                window.addEventListener('cinehub:verified', unlockDownloadButton);
             }
-
-            actionBtn.onclick = () => {
-                if (actionBtn.disabled) return;
-                actionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Download...';
-                actionBtn.disabled = true;
-
-                // Try multiple methods to ensure download works across platforms
-                let downloadAttempted = false;
-                let downloadSuccess = false;
-
-                // Method 1: Direct window.open (works on mobile, may be blocked on desktop)
-                try {
-                    const newWindow = window.open(targetDownloadUrl, '_blank');
-                    if (newWindow && !newWindow.closed && typeof newWindow.closed !== 'undefined') {
-                        downloadAttempted = true;
-                        downloadSuccess = true;
-                        console.log('Download started via window.open');
-                    } else {
-                        console.log('window.open blocked or failed, trying fallback');
-                    }
-                } catch (error) {
-                    console.log('window.open failed:', error);
-                }
-
-                // Method 2: Create anchor with download attribute (works for same-origin)
-                if (!downloadSuccess) {
-                    try {
-                        const triggerAnchor = document.createElement('a');
-                        triggerAnchor.href = targetDownloadUrl;
-                        triggerAnchor.setAttribute('download', '');
-                        triggerAnchor.setAttribute('target', '_blank');
-                        triggerAnchor.style.display = 'none';
-                        document.body.appendChild(triggerAnchor);
-                        triggerAnchor.click();
-                        setTimeout(() => document.body.removeChild(triggerAnchor), 100);
-                        downloadAttempted = true;
-                        console.log('Download attempted via anchor click');
-                    } catch (error) {
-                        console.log('Anchor click failed:', error);
-                    }
-                }
-
-                // Method 3: Hidden iframe (works for cross-origin on some browsers)
-                if (!downloadSuccess) {
-                    try {
-                        const iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = targetDownloadUrl;
-                        document.body.appendChild(iframe);
-                        setTimeout(() => document.body.removeChild(iframe), 5000);
-                        downloadAttempted = true;
-                        console.log('Download attempted via iframe');
-                    } catch (error) {
-                        console.log('Iframe method failed:', error);
-                    }
-                }
-
-                // Method 4: Direct location change (last resort)
-                if (!downloadAttempted) {
-                    try {
-                        window.location.href = targetDownloadUrl;
-                        downloadAttempted = true;
-                        console.log('Download attempted via location.href');
-                    } catch (error) {
-                        console.log('Location change failed:', error);
-                    }
-                }
-
-                // Show manual link if all automatic methods failed
-                if (!downloadAttempted) {
-                    console.error('All download methods failed');
-                    actionBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Download Failed';
-                    actionBtn.style.background = '#e74c3c';
-
-                    // Show manual download link
-                    const manualLink = document.createElement('div');
-                    manualLink.style.cssText = 'margin-top:1rem;padding:1rem;background:#1a1a1a;border-radius:8px;border:1px solid #333;';
-                    manualLink.innerHTML = `
-                        <p style="color:#aaa;font-size:0.85rem;margin-bottom:0.5rem">Automatic download failed. Click below:</p>
-                        <a href="${targetDownloadUrl}" target="_blank" style="color:#e50914;font-weight:600;text-decoration:underline;">Open Download Link</a>
-                    `;
-                    actionBtn.parentNode.insertBefore(manualLink, actionBtn.nextSibling);
-                } else {
-                    setTimeout(() => {
-                        actionBtn.innerHTML = '<i class="fas fa-download"></i> Start Download Now';
-                        actionBtn.disabled = false;
-                    }, 3000);
-                }
-            };
         }
 
         function showNotFoundError() {
@@ -351,7 +385,7 @@
             // ── Direct link (TDrive Cloud "Download" button) ──────────────────
             // Already a complete, ready-to-use URL — just show it as ready.
             titleEl.textContent = nameParam || "Your Requested File";
-            showDownloadReady(linkParam, "Direct download from your device.");
+            showDownloadReady(linkParam, "Direct download from your device.", nameParam);
 
         } else if (msgParam) {
             // ── Direct share-link format (TDrive Cloud "Copy Link") ───────────
@@ -364,7 +398,7 @@
                 : `${BRIDGE_API}/download/home/${msgParam}`;
             const sourceInfo = chParam ? ("Source: TD Channel #" + chParam) : "Source: Saved Messages";
 
-            showDownloadReady(streamUrl, sourceInfo);
+            showDownloadReady(streamUrl, sourceInfo, nameParam);
 
         } else if (messageId) {
             // ── Legacy catalog format: TMDB movie ID, mapped via the admin panel ──
@@ -382,7 +416,7 @@
                             ? "Source: TD Channel #" + data.channelId
                             : "Source: Saved Messages";
                         titleEl.textContent = data.fileName || "Your Requested File";
-                        showDownloadReady(data.downloadUrl, sourceInfo);
+                        showDownloadReady(data.downloadUrl, sourceInfo, data.fileName);
                     } else {
                         throw new Error('No download URL in response');
                     }
@@ -403,7 +437,7 @@
                                 titleEl.textContent = "Your Requested Movie";
                             });
 
-                        showDownloadReady(dlKey, "Secure download link verified by CineHub.");
+                        showDownloadReady(dlKey, "Secure download link verified by CineHub.", "movie.mp4");
                     } else {
                         showNotFoundError();
                     }
@@ -443,6 +477,8 @@
                     
                     window.__cinehubVerified = true;
                     window.dispatchEvent(new Event('cinehub:verified'));
+                    console.log('User verified, triggering download unlock');
+                    
                     setTimeout(function() {
                         overlay.style.transition = 'opacity 0.6s ease';
                         overlay.style.opacity = '0';

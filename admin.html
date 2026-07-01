@@ -150,6 +150,20 @@
         .search-row input{flex:1;padding:0.75rem 1rem;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:white;font-size:0.9rem;outline:none;font-family:'Inter',sans-serif}
         .search-row input:focus{border-color:var(--red)}
 
+        /* REQUEST ITEMS */
+        .request-item{background:#181818;border:1px solid #222;border-radius:8px;padding:1.25rem;margin-bottom:1rem}
+        .request-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+        .request-avatar{width:45px;height:45px;border-radius:50%;object-fit:cover;flex-shrink:0}
+        .request-info{flex:1}
+        .request-title{font-size:1rem;font-weight:700;margin-bottom:0.25rem}
+        .request-meta{font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem}
+        .request-reason{font-size:0.85rem;color:#ccc;margin-bottom:0.75rem;line-height:1.4}
+        .request-actions{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem}
+        .req-status{display:inline-block;padding:0.25rem 0.6rem;border-radius:4px;font-size:0.7rem;font-weight:600;text-transform:uppercase}
+        .req-pending{background:rgba(243,156,18,0.15);color:#f39c12}
+        .req-approved{background:rgba(46,204,113,0.15);color:#2ecc71}
+        .req-rejected{background:rgba(231,76,60,0.15);color:#e74c3c}
+
         @media(max-width:768px){
             .sidebar{width:55px}
             .sidebar-logo span,.nav-btn span,.sidebar-bottom{display:none}
@@ -228,6 +242,7 @@
                 <button class="nav-btn" onclick="goTo('series')"><i class="fas fa-tv"></i><span>Series</span></button>
                 <button class="nav-btn" onclick="goTo('animation')"><i class="fas fa-dragon"></i><span>Animation</span></button>
                 <button class="nav-btn" onclick="goTo('add')"><i class="fas fa-plus-circle"></i><span>Add Content</span></button>
+                <button class="nav-btn" onclick="goTo('requests')"><i class="fas fa-paper-plane"></i><span>Requests</span></button>
                 <button class="nav-btn" onclick="goTo('analytics')"><i class="fas fa-chart-bar"></i><span>Analytics</span></button>
                 <button class="nav-btn" onclick="goTo('visitors')"><i class="fas fa-globe"></i><span>Visitors</span></button>
                 <button class="nav-btn" onclick="goTo('settings')"><i class="fas fa-cog"></i><span>Settings</span></button>
@@ -432,7 +447,7 @@
                             <button class="btn btn-success" onclick="addEp('animation')" style="flex-shrink:0"><i class="fas fa-plus"></i></button>
                         </div>
                         <div id="aEpInfo" style="display:none;font-size:0.78rem;margin-bottom:0.5rem"></div>
-                        <div id="aEpBridgeGroup" style="display:none;display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+                        <div id="aEpBridgeGroup" style="display:none;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
                             <div class="fg" style="margin:0;flex:0 0 140px"><label>Episode Key</label><input type="text" id="aKey" placeholder="invincible-s4e1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
                             <div class="fg" style="margin:0;flex:0 0 120px"><label>Message ID</label><input type="number" id="aMsgId" placeholder="480" min="1"></div>
                             <div class="fg" style="margin:0;flex:0 0 150px"><label>Channel ID</label><input type="text" id="aChannelId" placeholder="3506869277"></div>
@@ -442,6 +457,27 @@
                             <button class="btn btn-primary" onclick="saveShow('animation')"><i class="fas fa-save"></i> Save & Deploy</button>
                             <button class="btn btn-secondary" onclick="document.getElementById('animForm').style.display='none'">Cancel</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REQUESTS -->
+            <div id="pg-requests" class="page">
+                <div class="page-title">Movie Requests</div>
+                <div class="page-sub">Manage user movie requests</div>
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-paper-plane" style="color:var(--blue)"></i> Pending Requests</div>
+                    <div class="search-row">
+                        <input type="text" placeholder="Search requests..." oninput="filterRequests(this.value)">
+                        <select id="requestStatusFilter" onchange="filterByStatus(this.value)" style="padding:0.75rem 1rem;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:white;font-size:0.9rem;outline:none;font-family:'Inter',sans-serif">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div id="requestsList">
+                        <div class="empty"><i class="fas fa-inbox"></i>No requests yet</div>
                     </div>
                 </div>
             </div>
@@ -762,7 +798,6 @@ async function loadFromGH() {
         });
         if (!r.ok) throw new Error('GitHub error '+r.status);
         var d = await r.json();
-        localStorage.setItem('ch_sha', d.sha);
         var code = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
         parseCode(code);
         toast('Live data synced from GitHub ✓','ok');
@@ -886,14 +921,16 @@ async function deploy(msg) {
     if (!s.token || !s.user || !s.repo) { toast('Configure GitHub settings first','err'); goTo('settings'); return false; }
     setDeploy('Connecting to GitHub...', 10);
     try {
-        var sha = localStorage.getItem('ch_sha');
-        if (!sha) {
-            var gr = await fetch('https://api.github.com/repos/'+s.user+'/'+s.repo+'/contents/movies-data.js?ref='+(s.branch||'main'), {
-                headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json' }
-            });
-            var gd = await gr.json();
-            sha = gd.sha;
-        }
+        // Always fetch the current SHA fresh — never trust a cached value.
+        // The file can change from other sources (a different browser/device,
+        // a direct GitHub edit, etc.), and pushing with a stale SHA causes
+        // GitHub to reject the whole commit with a "does not match" error.
+        var gr = await fetch('https://api.github.com/repos/'+s.user+'/'+s.repo+'/contents/movies-data.js?ref='+(s.branch||'main'), {
+            headers: { Authorization: 'token '+s.token, Accept: 'application/vnd.github.v3+json' }
+        });
+        if (!gr.ok) throw new Error('Could not fetch current file state (GitHub error '+gr.status+')');
+        var gd = await gr.json();
+        var sha = gd.sha;
         setDeploy('Uploading updated file...', 50);
         var content = buildCode();
         var encoded = btoa(unescape(encodeURIComponent(content)));
@@ -903,8 +940,6 @@ async function deploy(msg) {
             body: JSON.stringify({ message: 'Admin: '+msg, content: encoded, sha: sha, branch: s.branch||'main' })
         });
         if (!pr.ok) { var pe = await pr.json(); throw new Error(pe.message||'Push failed'); }
-        var pd = await pr.json();
-        if (pd.content && pd.content.sha) localStorage.setItem('ch_sha', pd.content.sha);
         setDeploy('✅ Deployed! Vercel is updating...', 100, true);
         addLog(msg);
         return true;
@@ -1945,6 +1980,146 @@ function addManualVisit() {
     renderVisitors();
     toast(getFlagEmoji(code) + ' ' + name + ' added (' + count + ' visit' + (count > 1 ? 's' : '') + ')', 'ok');
 }
+
+// ── REQUEST MANAGEMENT ───────────────────
+var allRequests = [];
+
+function loadRequests() {
+    allRequests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+    renderRequests();
+}
+
+function renderRequests(filter = '', statusFilter = '') {
+    var container = document.getElementById('requestsList');
+    if (!container) return;
+
+    var filtered = allRequests.filter(function(req) {
+        var matchesSearch = !filter || 
+            req.movieTitle.toLowerCase().includes(filter.toLowerCase()) ||
+            req.userName.toLowerCase().includes(filter.toLowerCase()) ||
+            req.userEmail.toLowerCase().includes(filter.toLowerCase());
+        var matchesStatus = !statusFilter || req.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i>No requests found</div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(function(req) {
+        var statusClass = 'req-' + req.status;
+        var avatar = req.userAvatar || 'https://via.placeholder.com/45';
+        var date = new Date(req.createdAt).toLocaleDateString();
+        
+        var actions = '';
+        if (req.status === 'pending') {
+            actions = `
+                <button class="btn btn-success btn-sm" onclick="updateRequestStatus('${req.id}', 'approved')">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="updateRequestStatus('${req.id}', 'rejected')">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="processRequest('${req.id}')">
+                    <i class="fas fa-plus"></i> Add Movie
+                </button>
+            `;
+        } else if (req.status === 'approved') {
+            actions = `
+                <button class="btn btn-primary btn-sm" onclick="processRequest('${req.id}')">
+                    <i class="fas fa-plus"></i> Add Movie
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="updateRequestStatus('${req.id}', 'pending')">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            `;
+        } else {
+            actions = `
+                <button class="btn btn-secondary btn-sm" onclick="updateRequestStatus('${req.id}', 'pending')">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            `;
+        }
+
+        return `
+            <div class="request-item">
+                <div class="request-header">
+                    <img class="request-avatar" src="${avatar}" alt="User">
+                    <div class="request-info">
+                        <div class="request-title">${req.movieTitle} ${req.movieYear ? '(' + req.movieYear + ')' : ''}</div>
+                        <div class="request-meta">
+                            <span>Requested by ${req.userName}</span>
+                            <span>• ${date}</span>
+                            <span class="req-status ${statusClass}">${req.status}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-reason"><strong>Reason:</strong> ${req.movieReason}</div>
+                <div class="request-reason">
+                    <strong>Genre:</strong> ${req.movieGenre || 'Not specified'} • 
+                    <strong>Email:</strong> ${req.userEmail}
+                </div>
+                <div class="request-actions">${actions}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterRequests(value) {
+    var statusFilter = document.getElementById('requestStatusFilter').value;
+    renderRequests(value, statusFilter);
+}
+
+function filterByStatus(status) {
+    var searchValue = document.querySelector('.search-row input').value;
+    renderRequests(searchValue, status);
+}
+
+function updateRequestStatus(requestId, newStatus) {
+    var reqIndex = allRequests.findIndex(function(r) { return r.id === requestId; });
+    if (reqIndex === -1) return;
+
+    allRequests[reqIndex].status = newStatus;
+    localStorage.setItem('movieRequests', JSON.stringify(allRequests));
+    
+    var statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    toast('Request marked as ' + statusText, 'ok');
+    renderRequests();
+}
+
+function processRequest(requestId) {
+    var req = allRequests.find(function(r) { return r.id === requestId; });
+    if (!req) return;
+
+    // Navigate to Add Content page and pre-fill the search
+    goTo('add');
+    switchTab('movie');
+    
+    // Auto-search for the movie
+    setTimeout(function() {
+        var searchInput = document.getElementById('srchMovie');
+        if (searchInput) {
+            searchInput.value = req.movieTitle;
+            tmdbSearch('movie');
+            toast('Searching for: ' + req.movieTitle, 'ok');
+        }
+    }, 500);
+
+    // Mark as approved if not already
+    if (req.status !== 'approved') {
+        updateRequestStatus(requestId, 'approved');
+    }
+}
+
+// Load requests when visiting the requests page
+var originalGoTo = goTo;
+goTo = function(page) {
+    originalGoTo(page);
+    if (page === 'requests') {
+        loadRequests();
+    }
+};
 
 </script>
 </body>

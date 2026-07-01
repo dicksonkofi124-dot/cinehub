@@ -40,6 +40,10 @@ const els = {
     animationGrid: document.getElementById('animationGrid'),
     gridViewAnimation: document.getElementById('gridViewAnimation'),
     listViewAnimation: document.getElementById('listViewAnimation'),
+    // Added for series section
+    seriesGrid: document.getElementById('seriesGrid'),
+    gridViewSeries: document.getElementById('gridViewSeries'),
+    listViewSeries: document.getElementById('listViewSeries'),
     clearWatchlistBtn: document.getElementById('clearWatchlistBtn')
 };
 
@@ -70,6 +74,10 @@ function setupEventListeners() {
     // Animation view toggles
     if (els.gridViewAnimation) els.gridViewAnimation.addEventListener('click', () => setViewMode('grid'));
     if (els.listViewAnimation) els.listViewAnimation.addEventListener('click', () => setViewMode('list'));
+
+    // Series view toggles
+    if (els.gridViewSeries) els.gridViewSeries.addEventListener('click', () => setViewMode('grid'));
+    if (els.listViewSeries) els.listViewSeries.addEventListener('click', () => setViewMode('list'));
 
     els.loadMoreBtn.addEventListener('click', loadMoreMovies);
 
@@ -165,6 +173,11 @@ function switchSection(sectionId) {
     // Load animations when user clicks Animation in nav
     if (sectionId === 'animation') {
         loadAnimations();
+    }
+
+    // Load series when user clicks Series in nav
+    if (sectionId === 'series') {
+        loadSeries();
     }
 
     if (sectionId === 'watchlist') renderWatchlist();
@@ -285,64 +298,63 @@ async function fetchFromAPI(endpoint) {
 }
 
 async function loadPopularMovies(retry = 0) {
-    // Only load movies that have been uploaded (in downloadLinks)
-    if (window.downloadLinks) {
-        const movieIds = Object.keys(window.downloadLinks).map(id => parseInt(id));
-        
-        if (movieIds.length === 0) {
-            els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
-            els.loadMoreBtn.style.display = 'none';
-            return;
-        }
+    // Only load content that has been added via the admin panel
+    const movieIds = window.downloadLinks ? Object.keys(window.downloadLinks).map(id => parseInt(id)) : [];
 
-        showLoading();
-        
-        try {
-            const promises = movieIds.map(id => fetchFromAPI(`/movie/${id}`));
-            const movies = await Promise.all(promises);
-            const validMovies = movies.filter(m => m !== null);
-            
-            if (currentPage === 1) {
-                allMovies = validMovies;
-                // Add series from seriesData to the grid
-                if (window.seriesData) {
-                    const seriesList = Object.values(window.seriesData).map(series => ({
-                        id: series.id,
-                        title: series.title,
-                        poster_path: series.poster_path,
-                        release_date: "2021-01-01",
-                        vote_average: 8.5,
-                        media_type: "tv"
-                    }));
-                    allMovies = [...seriesList, ...allMovies];
-                }
-                // Add animations from animationData to the grid
-                if (window.animationData) {
-                    const animationList = Object.values(window.animationData).map(animation => ({
-                        id: animation.id,
-                        title: animation.title,
-                        poster_path: animation.poster_path,
-                        release_date: "2021-01-01",
-                        vote_average: 8.5,
-                        media_type: "tv"
-                    }));
-                    allMovies = [...animationList, ...allMovies];
-                }
-                displayMovies(allMovies);
-            }
-            hideLoading();
-        } catch (err) {
-            console.error('Failed to load uploaded movies:', err);
-            hideLoading();
-            if (retry < 2) {
-                setTimeout(() => loadPopularMovies(retry + 1), 1200);
-            } else {
-                showFallbackContent();
-            }
-        }
-    } else {
+    const seriesList = window.seriesData ? Object.values(window.seriesData).map(series => ({
+        id: series.id,
+        title: series.title,
+        poster_path: series.poster_path,
+        release_date: "2021-01-01",
+        vote_average: 8.5,
+        media_type: "tv"
+    })) : [];
+
+    const animationList = window.animationData ? Object.values(window.animationData).map(animation => ({
+        id: animation.id,
+        title: animation.title,
+        poster_path: animation.poster_path,
+        release_date: "2021-01-01",
+        vote_average: 8.5,
+        media_type: "tv"
+    })) : [];
+
+    // Nothing added anywhere (no movies, no series, no animations)
+    if (movieIds.length === 0 && seriesList.length === 0 && animationList.length === 0) {
         els.moviesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No movies uploaded yet.</p>';
         els.loadMoreBtn.style.display = 'none';
+        return;
+    }
+
+    // No movies yet, but there are series/animations — show those instead of bailing out
+    if (movieIds.length === 0) {
+        if (currentPage === 1) {
+            allMovies = [...seriesList, ...animationList];
+            displayMovies(allMovies);
+        }
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const promises = movieIds.map(id => fetchFromAPI(`/movie/${id}`));
+        const movies = await Promise.all(promises);
+        const validMovies = movies.filter(m => m !== null);
+
+        if (currentPage === 1) {
+            allMovies = [...seriesList, ...animationList, ...validMovies];
+            displayMovies(allMovies);
+        }
+        hideLoading();
+    } catch (err) {
+        console.error('Failed to load uploaded movies:', err);
+        hideLoading();
+        if (retry < 2) {
+            setTimeout(() => loadPopularMovies(retry + 1), 1200);
+        } else {
+            showFallbackContent();
+        }
     }
 }
 
@@ -434,6 +446,41 @@ async function loadAnimations() {
     }
 }
 
+async function loadSeries() {
+    if (window.seriesData) {
+        const seriesList = Object.values(window.seriesData).map(series => ({
+            id: series.id,
+            title: series.title,
+            poster_path: series.poster_path,
+            release_date: "2021-01-01",
+            vote_average: 8.5,
+            media_type: "tv"
+        }));
+
+        document.getElementById('series').style.display = 'block';
+        document.getElementById('movies').style.display = 'none';
+        document.getElementById('trending').style.display = 'none';
+        document.getElementById('animation').style.display = 'none';
+
+        if (seriesList.length === 0) {
+            els.seriesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No series added yet.</p>';
+            return;
+        }
+
+        els.seriesGrid.innerHTML = seriesList.map(createMovieCard).join('');
+
+        // Add click listeners to series cards
+        els.seriesGrid.querySelectorAll('.movie-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const movieId = card.dataset.movieId;
+                showMovieDetails(movieId);
+            });
+        });
+    } else {
+        els.seriesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No series added yet.</p>';
+    }
+}
+
 function showFallbackContent() {
     const fallback = [
         { id: 27205, title: "Inception", release_date: "2010-07-16", vote_average: 8.4, poster_path: "/9gk7adHYeL0O8xH0v4k6vXjX0.jpg" },
@@ -445,78 +492,59 @@ function showFallbackContent() {
 }
 
 async function searchMovies(query) {
-    const data = await fetchFromAPI(`/search/movie?query=${encodeURIComponent(query)}&page=${currentPage}`);
-    
-    if (data?.results) {
-        let results = data.results;
+    // Local search only returns everything in one pass — ignore repeat calls
+    // triggered by "Load More" (there's no second page to fetch).
+    if (currentPage > 1) return;
 
-        const searchTerm = query.toLowerCase().trim();
+    const searchTerm = query.toLowerCase().trim();
+    let results = [];
 
-        // === Force Real Series to Top of Search Results ===
-        
-        // Game of Thrones
-        if (searchTerm.includes("game of thrones") || searchTerm.includes("got") || searchTerm.includes("thrones")) {
-            const hasRealGOT = results.some(m => m.id === 1399);
-            if (!hasRealGOT) {
-                results.unshift({
-                    id: 1399,
-                    title: "Game of Thrones",
-                    release_date: "2011-04-17",
-                    vote_average: 8.4,
-                    poster_path: "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
-                    overview: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns.",
-                    media_type: "tv"
-                });
-            }
-        }
-
-        // The Boys
-        if (searchTerm.includes("boys") || searchTerm.includes("the boys")) {
-            const hasRealBoys = results.some(m => m.id === 76479);
-            if (!hasRealBoys) {
-                results.unshift({
-                    id: 76479,
-                    title: "The Boys",
-                    release_date: "2019-07-25",
-                    vote_average: 8.4,
-                    poster_path: "/stKGOm8UyhuLPR9sZLjs5AboUyT.jpg",
-                    overview: "A group of vigilantes set out to take down corrupt superheroes with no more than blue-collar grit.",
-                    media_type: "tv"
-                });
-            }
-        }
-
-        // Invincible - now in animationData, so check there
-        if (searchTerm.includes("invincible")) {
-            const hasRealInvincible = results.some(m => m.id === 95557);
-            if (!hasRealInvincible && window.animationData && window.animationData[95557]) {
-                const invincible = window.animationData[95557];
-                results.unshift({
-                    id: invincible.id,
-                    title: invincible.title,
-                    release_date: "2021-03-25",
-                    vote_average: 8.7,
-                    poster_path: invincible.poster_path,
-                    overview: "Mark Grayson is a normal high school senior... except that his father is the most powerful superhero on the planet.",
-                    media_type: "tv"
-                });
-            }
-        }
-
-        // Filter out unwanted fake Game of Thrones entries
-        results = results.filter(movie => {
-            const unwantedIds = [591278, 322484, 492606];
-            return !unwantedIds.includes(movie.id);
-        });
-
-        if (currentPage === 1) {
-            allMovies = results;
-            displayMovies(allMovies);
-        } else {
-            allMovies.push(...results);
-            appendMovies(results);
+    // Search movies that have been added via the admin panel (in downloadLinks)
+    if (window.downloadLinks) {
+        const movieIds = Object.keys(window.downloadLinks).map(id => parseInt(id));
+        if (movieIds.length > 0) {
+            showLoading();
+            const promises = movieIds.map(id => fetchFromAPI(`/movie/${id}`));
+            const movies = await Promise.all(promises);
+            hideLoading();
+            const matchingMovies = movies.filter(m => m && m.title && m.title.toLowerCase().includes(searchTerm));
+            results.push(...matchingMovies);
         }
     }
+
+    // Search series that have been added via the admin panel
+    if (window.seriesData) {
+        const matchingSeries = Object.values(window.seriesData)
+            .filter(series => series.title && series.title.toLowerCase().includes(searchTerm))
+            .map(series => ({
+                id: series.id,
+                title: series.title,
+                poster_path: series.poster_path,
+                release_date: "2021-01-01",
+                vote_average: 8.5,
+                media_type: "tv"
+            }));
+        results.push(...matchingSeries);
+    }
+
+    // Search animations that have been added via the admin panel
+    if (window.animationData) {
+        const matchingAnimations = Object.values(window.animationData)
+            .filter(animation => animation.title && animation.title.toLowerCase().includes(searchTerm))
+            .map(animation => ({
+                id: animation.id,
+                title: animation.title,
+                poster_path: animation.poster_path,
+                release_date: "2021-01-01",
+                vote_average: 8.5,
+                media_type: "tv"
+            }));
+        results.push(...matchingAnimations);
+    }
+
+    allMovies = results;
+    displayMovies(allMovies);
+    els.loadMoreBtn.style.display = 'none';
 }
 
 function handleSearch() {
@@ -556,10 +584,13 @@ function setViewMode(mode) {
     if (els.listViewTrending) els.listViewTrending.classList.toggle('active', !isGridView);
     if (els.gridViewAnimation) els.gridViewAnimation.classList.toggle('active', isGridView);
     if (els.listViewAnimation) els.listViewAnimation.classList.toggle('active', !isGridView);
+    if (els.gridViewSeries) els.gridViewSeries.classList.toggle('active', isGridView);
+    if (els.listViewSeries) els.listViewSeries.classList.toggle('active', !isGridView);
 
     els.moviesGrid.className = isGridView ? 'movies-grid' : 'movies-list';
     if (els.trendingGrid) els.trendingGrid.className = isGridView ? 'movies-grid' : 'movies-list';
     if (els.animationGrid) els.animationGrid.className = isGridView ? 'movies-grid' : 'movies-list';
+    if (els.seriesGrid) els.seriesGrid.className = isGridView ? 'movies-grid' : 'movies-list';
 
     if (allMovies.length) displayMovies(allMovies);
 }
@@ -572,11 +603,11 @@ function closeModal() {
 // UPDATED: Now supports series and animations from movies-data.js
 async function showMovieDetails(movieId) {
     if (window.seriesData && window.seriesData[movieId]) {
-        displaySeriesModal(window.seriesData[movieId]);
+        displaySeriesModal(window.seriesData[movieId], 'series');
         return;
     }
     if (window.animationData && window.animationData[movieId]) {
-        displaySeriesModal(window.animationData[movieId]);
+        displaySeriesModal(window.animationData[movieId], 'animation');
         return;
     }
     
@@ -584,9 +615,89 @@ async function showMovieDetails(movieId) {
     if (data) displayMovieModal(data);
 }
 
+// ─── Series/Animation Download Progress Tracking ─────────────────────────
+// Tracks which episodes a user has downloaded (per browser, via localStorage)
+// so they can see where they left off next time they visit.
+
+function getSeriesKey(series, sourceType) {
+    return `${sourceType}_${series.id}`;
+}
+
+function getDownloadProgress() {
+    return JSON.parse(localStorage.getItem('seriesProgress')) || {};
+}
+
+function saveDownloadProgress(progress) {
+    localStorage.setItem('seriesProgress', JSON.stringify(progress));
+}
+
+function markEpisodeDownloaded(seriesKey, seasonNum, epNum) {
+    const progress = getDownloadProgress();
+    if (!progress[seriesKey]) progress[seriesKey] = {};
+    if (!progress[seriesKey][seasonNum]) progress[seriesKey][seasonNum] = [];
+    const epNumStr = String(epNum);
+    if (!progress[seriesKey][seasonNum].includes(epNumStr)) {
+        progress[seriesKey][seasonNum].push(epNumStr);
+    }
+    saveDownloadProgress(progress);
+}
+
+function isEpisodeDownloaded(seriesKey, seasonNum, epNum) {
+    const progress = getDownloadProgress();
+    return !!(progress[seriesKey] && progress[seriesKey][seasonNum] && progress[seriesKey][seasonNum].includes(String(epNum)));
+}
+
+// Summarizes progress for a series: total episodes, how many downloaded, and the last one downloaded
+function getSeriesProgressSummary(series, seriesKey) {
+    const progress = getDownloadProgress();
+    const seriesProgress = progress[seriesKey] || {};
+    let totalEpisodes = 0;
+    let downloadedCount = 0;
+    let lastDownloaded = null;
+
+    const seasonNumbers = Object.keys(series.seasons || {}).sort((a, b) => a - b);
+    seasonNumbers.forEach(seasonNum => {
+        const episodes = series.seasons[seasonNum];
+        const epNums = Object.keys(episodes).sort((a, b) => a - b);
+        totalEpisodes += epNums.length;
+        epNums.forEach(epNum => {
+            if (seriesProgress[seasonNum] && seriesProgress[seasonNum].includes(String(epNum))) {
+                downloadedCount++;
+                lastDownloaded = { season: seasonNum, episode: epNum };
+            }
+        });
+    });
+
+    return { totalEpisodes, downloadedCount, lastDownloaded };
+}
+
+function renderSeriesProgressBanner(series, seriesKey) {
+    const banner = document.getElementById('seriesProgressBanner');
+    if (!banner) return;
+
+    const { totalEpisodes, downloadedCount, lastDownloaded } = getSeriesProgressSummary(series, seriesKey);
+
+    if (downloadedCount === 0) {
+        banner.innerHTML = '';
+        return;
+    }
+
+    const isComplete = downloadedCount >= totalEpisodes;
+
+    banner.innerHTML = `
+        <div class="series-progress-banner">
+            <i class="fas ${isComplete ? 'fa-trophy' : 'fa-check-circle'}"></i>
+            <span>${isComplete
+                ? `All ${totalEpisodes} episodes downloaded`
+                : `${downloadedCount}/${totalEpisodes} episodes downloaded — you're up to Season ${lastDownloaded.season}, Episode ${lastDownloaded.episode}`}</span>
+        </div>
+    `;
+}
+
 // NEW: Display series episodes with dropdown season selector
-function displaySeriesModal(series) {
+function displaySeriesModal(series, sourceType = 'series') {
     currentMovie = series;
+    const seriesKey = getSeriesKey(series, sourceType);
 
     document.getElementById('modalPoster').src = series.poster_path 
         ? IMAGE_BASE_URL + series.poster_path 
@@ -598,7 +709,9 @@ function displaySeriesModal(series) {
     document.getElementById('modalRating').textContent = '⭐ N/A';
     document.getElementById('modalOverview').textContent = 'Select a season to view episodes';
 
-    let seasonsHTML = '<h3 style="margin:15px 0 10px;color:#e50914;">Seasons</h3>';
+    let seasonsHTML = '<div id="seriesProgressBanner"></div>';
+    seasonsHTML += '<h3 style="margin:15px 0 10px;color:#e50914;">Seasons</h3>';
+    let seasonToOpen = '';
 
     if (series.seasons) {
         const seasonNumbers = Object.keys(series.seasons).sort((a, b) => a - b);
@@ -610,23 +723,34 @@ function displaySeriesModal(series) {
 
         seasonsHTML += `
             <div class="season-selector-container">
-                <select id="seasonSelect" class="season-dropdown-select" data-series-title="${series.title.replace(/"/g, '&quot;')}">
+                <select id="seasonSelect" class="season-dropdown-select">
                     <option value="">Select a season...</option>
                     ${seasonOptions}
                 </select>
             </div>
             <div id="episodesContainer" class="episodes-container"></div>
         `;
+
+        // Auto-open the season the user last downloaded an episode from, so
+        // they can immediately see where they got to.
+        const progressSummary = getSeriesProgressSummary(series, seriesKey);
+        seasonToOpen = progressSummary.lastDownloaded ? progressSummary.lastDownloaded.season : '';
     }
 
     document.getElementById('modalCast').innerHTML = seasonsHTML;
+    renderSeriesProgressBanner(series, seriesKey);
 
     // Add event listener for season selection
     const seasonSelect = document.getElementById('seasonSelect');
     if (seasonSelect) {
         seasonSelect.addEventListener('change', function() {
-            displaySeasonEpisodes(this.dataset.seriesTitle, this.value);
+            displaySeasonEpisodes(series, seriesKey, this.value);
         });
+
+        if (seasonToOpen) {
+            seasonSelect.value = seasonToOpen;
+            displaySeasonEpisodes(series, seriesKey, seasonToOpen);
+        }
     }
 
     // Hide the general download button for series since episodes have individual download buttons
@@ -646,46 +770,62 @@ function displaySeriesModal(series) {
     els.movieModal.style.display = 'flex';
 }
 
-// Display episodes for selected season
-function displaySeasonEpisodes(seriesTitle, seasonNum) {
+// Display episodes for selected season, with download-progress indicators
+// Turns a stored bridge stream URL (https://.../download/{channelId}/{messageId})
+// into the params download.html expects, so episode downloads go through the
+// same verified, multi-method download manager as movie downloads do.
+function buildEpisodeDownloadPageUrl(rawUrl, episodeName) {
+    const match = rawUrl.match(/\/download\/([^\/]+)\/(\d+)\/?(?:\?.*)?$/);
+    if (match) {
+        const [, channelId, messageId] = match;
+        const params = new URLSearchParams();
+        params.set('msg', messageId);
+        if (channelId && channelId !== 'home') params.set('ch', channelId);
+        params.set('name', episodeName);
+        return `download.html?${params.toString()}`;
+    }
+    // Fallback: not in the expected bridge format — pass it through as a direct link
+    const params = new URLSearchParams();
+    params.set('link', rawUrl);
+    params.set('name', episodeName);
+    return `download.html?${params.toString()}`;
+}
+
+function displaySeasonEpisodes(series, seriesKey, seasonNum) {
     const episodesContainer = document.getElementById('episodesContainer');
-    
+
     if (!seasonNum) {
         episodesContainer.innerHTML = '';
         return;
     }
-    
-    // Find the series/animation data
-    let series = null;
-    for (const id in window.seriesData) {
-        if (window.seriesData[id].title === seriesTitle) {
-            series = window.seriesData[id];
-            break;
-        }
-    }
-    if (!series) {
-        for (const id in window.animationData) {
-            if (window.animationData[id].title === seriesTitle) {
-                series = window.animationData[id];
-                break;
-            }
-        }
-    }
-    
+
     if (!series || !series.seasons[seasonNum]) {
         episodesContainer.innerHTML = '<p style="color:#888;padding:1rem;">No episodes found for this season.</p>';
         return;
     }
-    
+
     const episodes = series.seasons[seasonNum];
-    const episodesList = Object.keys(episodes).sort((a, b) => a - b).map(epNum => `
-        <div class="episode-item">
-            <span class="episode-number">Episode ${epNum}</span>
-            <button class="episode-download-btn" data-download-url="${episodes[epNum].replace(/"/g, '&quot;')}">
-                <i class="fas fa-download"></i> Download
+    const sortedEpNums = Object.keys(episodes).sort((a, b) => a - b);
+
+    // First episode in this season that hasn't been downloaded yet — flagged as "continue here"
+    const nextEpisode = sortedEpNums.find(epNum => !isEpisodeDownloaded(seriesKey, seasonNum, epNum));
+
+    const episodesList = sortedEpNums.map(epNum => {
+        const downloaded = isEpisodeDownloaded(seriesKey, seasonNum, epNum);
+        const isNext = epNum === nextEpisode;
+        const episodeName = `${series.title} - Season ${seasonNum} Episode ${epNum}`;
+        const downloadPageUrl = buildEpisodeDownloadPageUrl(episodes[epNum], episodeName);
+        return `
+        <div class="episode-item${downloaded ? ' episode-downloaded' : ''}">
+            <span class="episode-number">
+                Episode ${epNum}${downloaded ? ' <i class="fas fa-check-circle episode-check" title="Downloaded"></i>' : ''}${!downloaded && isNext ? ' <span class="continue-badge">CONTINUE HERE</span>' : ''}
+            </span>
+            <button class="episode-download-btn${downloaded ? ' downloaded' : ''}" data-download-url="${downloadPageUrl.replace(/"/g, '&quot;')}" data-season="${seasonNum}" data-episode="${epNum}">
+                <i class="fas fa-download"></i> ${downloaded ? 'Downloaded' : 'Download'}
             </button>
         </div>
-    `).join('');
+    `;
+    }).join('');
 
     episodesContainer.innerHTML = `
         <div class="season-episodes-display">
@@ -698,8 +838,15 @@ function displaySeasonEpisodes(seriesTitle, seasonNum) {
     episodesContainer.querySelectorAll('.episode-download-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const url = this.dataset.downloadUrl;
+            const sNum = this.dataset.season;
+            const eNum = this.dataset.episode;
             if (url) {
+                // Opens the download manager page (verification + reliable multi-method download)
                 window.open(url, '_blank');
+                markEpisodeDownloaded(seriesKey, sNum, eNum);
+                // Refresh the episode list and progress banner to reflect the new state
+                displaySeasonEpisodes(series, seriesKey, seasonNum);
+                renderSeriesProgressBanner(series, seriesKey);
             }
         });
     });
