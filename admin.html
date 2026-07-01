@@ -622,6 +622,27 @@
     </div>
 </div>
 
+<!-- Firebase SDK (Firestore only — admin login is separate/local) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    var requestsDB = null;
+    try {
+        firebase.initializeApp({
+            apiKey: "AIzaSyCows2um0geyTZ7tSQzn-dxy74tr5X0zEg",
+            authDomain: "cinehub-requests-739a5.firebaseapp.com",
+            projectId: "cinehub-requests-739a5",
+            storageBucket: "cinehub-requests-739a5.firebasestorage.app",
+            messagingSenderId: "53577335198",
+            appId: "1:53577335198:web:db7215b72b1d59e197568f",
+            measurementId: "G-PYJZLBPV37"
+        });
+        requestsDB = firebase.firestore();
+    } catch (e) {
+        console.error('Firebase init failed in admin:', e);
+    }
+</script>
+
 <script>
 var TMDB = '3fd2be6f0c70a2a598f084ddfb75487c';
 var IMG = 'https://image.tmdb.org/t/p/w200';
@@ -1985,8 +2006,25 @@ function addManualVisit() {
 var allRequests = [];
 
 function loadRequests() {
-    allRequests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
-    renderRequests();
+    if (!requestsDB) {
+        allRequests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+        renderRequests();
+        return;
+    }
+    requestsDB.collection('movieRequests').get()
+        .then(function(snapshot) {
+            allRequests = snapshot.docs.map(function(doc) {
+                return Object.assign({ id: doc.id }, doc.data());
+            });
+            allRequests.sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+            renderRequests();
+        })
+        .catch(function(error) {
+            console.error('Error loading requests:', error);
+            toast('Failed to load requests from Firestore', 'err');
+            allRequests = [];
+            renderRequests();
+        });
 }
 
 function renderRequests(filter = '', statusFilter = '') {
@@ -2081,11 +2119,24 @@ function updateRequestStatus(requestId, newStatus) {
     if (reqIndex === -1) return;
 
     allRequests[reqIndex].status = newStatus;
-    localStorage.setItem('movieRequests', JSON.stringify(allRequests));
-    
+
     var statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-    toast('Request marked as ' + statusText, 'ok');
-    renderRequests();
+
+    if (requestsDB) {
+        requestsDB.collection('movieRequests').doc(requestId).update({ status: newStatus })
+            .then(function() {
+                toast('Request marked as ' + statusText, 'ok');
+                renderRequests();
+            })
+            .catch(function(error) {
+                console.error('Error updating request:', error);
+                toast('Failed to update request', 'err');
+            });
+    } else {
+        localStorage.setItem('movieRequests', JSON.stringify(allRequests));
+        toast('Request marked as ' + statusText, 'ok');
+        renderRequests();
+    }
 }
 
 function processRequest(requestId) {
