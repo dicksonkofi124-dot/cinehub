@@ -186,14 +186,25 @@ function switchSection(sectionId) {
 // Attach navigation to all links
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+
+        // Close the mobile hamburger menu whenever a nav link is tapped,
+        // whether it's an in-page section or a real link like requests.html
+        els.navMenu.classList.remove('active');
+
+        // Only hijack in-page section links (href="#something").
+        // Real page links (e.g. "requests.html") should navigate normally.
+        if (!href || !href.startsWith('#')) return;
+
         e.preventDefault();
-        const sectionId = link.getAttribute('href').substring(1);
+        const sectionId = href.substring(1);
         switchSection(sectionId);
     });
 });
 
 // ─── FIX 3: Logo now correctly shows movie grid (not blank home) ─────────────────────────
 document.querySelector('.nav-logo').addEventListener('click', () => {
+    els.navMenu.classList.remove('active');
     switchSection('movies');
 });
 

@@ -195,13 +195,11 @@
         <!-- Forgot Password Form -->
         <div id="forgotForm" style="display:none">
             <p style="color:#aaa;font-size:0.85rem;margin-bottom:1rem;text-align:left">
-                Enter your GitHub token to verify identity and reset your password.
+                We'll send a password reset link to the admin account's email address.
             </p>
-            <input type="password" id="forgotToken" placeholder="GitHub Personal Access Token (ghp_...)">
-            <input type="password" id="forgotNewPass" placeholder="New password (min 8 chars)" style="margin-top:0.75rem">
-            <input type="password" id="forgotConfirm" placeholder="Confirm new password" style="margin-top:0.75rem">
-            <button onclick="doForgotReset()" style="margin-top:0.75rem"><i class="fas fa-key"></i> Reset Password</button>
+            <button onclick="doForgotReset()"><i class="fas fa-key"></i> Send Reset Email</button>
             <div id="forgotErr"></div>
+            <div id="forgotOk" style="display:none"></div>
             <p style="margin-top:1rem;font-size:0.82rem">
                 <a href="#" onclick="showLogin()" style="color:var(--muted);text-decoration:none">← Back to login</a>
             </p>
@@ -622,11 +620,18 @@
     </div>
 </div>
 
-<!-- Firebase SDK (Firestore only — admin login is separate/local) -->
+<!-- Firebase SDK (Auth + Firestore — admin login is now real Firebase Auth) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script>
+    // IMPORTANT: change this to the email of the admin account you create in
+    // Firebase Console → Authentication → Users. It must match EXACTLY,
+    // and it must also match the ADMIN_EMAIL used in your Firestore rules.
+    var ADMIN_EMAIL = 'businessmy1842@gmail.com';
+
     var requestsDB = null;
+    var adminAuth = null;
     try {
         firebase.initializeApp({
             apiKey: "AIzaSyCows2um0geyTZ7tSQzn-dxy74tr5X0zEg",
@@ -637,6 +642,7 @@
             appId: "1:53577335198:web:db7215b72b1d59e197568f",
             measurementId: "G-PYJZLBPV37"
         });
+        adminAuth = firebase.auth();
         requestsDB = firebase.firestore();
     } catch (e) {
         console.error('Firebase init failed in admin:', e);
@@ -650,12 +656,12 @@ var db = { dl: {}, series: {}, anim: {} };
 var eps = { series: {}, animation: {} };
 var sel = { movie: null, series: null, animation: null };
 
-// ── AUTH (cross-device) ───────────────────
-// Settings are stored in GitHub as admin-config.json
-// This allows all devices to share the same settings and password
+// ── AUTH (Firebase) ───────────────────────
+// Admin sign-in is handled by Firebase Authentication (see ADMIN_EMAIL above).
+// GitHub token/repo settings below are unrelated — they're for the GitHub
+// content-sync feature, not login.
 
 var GITHUB_CONFIG_FILE = 'admin-config.json';
-var DEFAULT_PASS = 'CineHub@Admin2026';
 
 function showLogin() {
     document.getElementById('loginForm').style.display = 'block';
@@ -668,62 +674,52 @@ function showForgot() {
     document.getElementById('forgotForm').style.display = 'block';
 }
 
-async function doForgotReset() {
-    var token = document.getElementById('forgotToken').value.trim();
-    var np = document.getElementById('forgotNewPass').value;
-    var cp = document.getElementById('forgotConfirm').value;
+function doForgotReset() {
     var errEl = document.getElementById('forgotErr');
+    var okEl = document.getElementById('forgotOk');
     errEl.style.cssText = 'display:none';
+    if (okEl) okEl.style.display = 'none';
+    if (!adminAuth) return showErr(errEl, 'Firebase not available — check your connection and try again.');
 
-    if (!token) return showErr(errEl, 'Enter your GitHub token');
-    if (!np || np.length < 8) return showErr(errEl, 'Password must be at least 8 characters');
-    if (np !== cp) return showErr(errEl, 'Passwords do not match');
-
-    // Verify token works with GitHub
-    var s = cfg();
-    var user = s.user || 'dicksonkofi124-dot';
-    var repo = s.repo || 'cinehub';
-    try {
-        var r = await fetch('https://api.github.com/repos/'+user+'/'+repo, {
-            headers: { Authorization: 'token '+token }
+    adminAuth.sendPasswordResetEmail(ADMIN_EMAIL)
+        .then(function() {
+            if (okEl) {
+                okEl.textContent = 'Reset email sent to ' + ADMIN_EMAIL + '. Check that inbox.';
+                okEl.style.cssText = 'display:block;color:#2ecc71;font-size:0.82rem;margin-top:0.75rem';
+            }
+        })
+        .catch(function(error) {
+            console.error('Password reset failed:', error);
+            showErr(errEl, 'Could not send reset email: ' + error.message);
         });
-        if (!r.ok) return showErr(errEl, 'Invalid GitHub token. Access denied.');
-
-        // Save new password and token
-        localStorage.setItem('ch_pass', np);
-        var newCfg = Object.assign({}, cfg(), { token: token });
-        localStorage.setItem('ch_cfg', JSON.stringify(newCfg));
-        localStorage.setItem('ch_auth', '1');
-
-        showLogin();
-        toast('Password reset! Logging you in...', 'ok');
-        setTimeout(function() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            boot();
-        }, 1000);
-    } catch(e) {
-        showErr(errEl, 'Could not verify token: ' + e.message);
-    }
 }
 
 function doLogin() {
     var p = document.getElementById('pwdInput').value;
-    var ok = localStorage.getItem('ch_pass') || DEFAULT_PASS;
     var errEl = document.getElementById('loginErr');
-    if (p === ok) {
-        localStorage.setItem('ch_auth', '1');
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        boot();
-    } else {
-        showErr(errEl, 'Incorrect password. Please try again.');
-        document.getElementById('pwdInput').value = '';
-    }
+    var btn = document.querySelector('#loginForm button');
+    if (!adminAuth) return showErr(errEl, 'Firebase not available — check your connection and try again.');
+    if (!p) return showErr(errEl, 'Enter your password');
+
+    if (btn) btn.disabled = true;
+    adminAuth.signInWithEmailAndPassword(ADMIN_EMAIL, p)
+        .then(function() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            boot();
+        })
+        .catch(function(error) {
+            console.error('Admin sign-in failed:', error);
+            showErr(errEl, 'Incorrect password. Please try again.');
+            document.getElementById('pwdInput').value = '';
+        })
+        .finally(function() {
+            if (btn) btn.disabled = false;
+        });
 }
 
 function doLogout() {
-    localStorage.removeItem('ch_auth');
+    if (adminAuth) adminAuth.signOut();
     location.reload();
 }
 
@@ -733,10 +729,22 @@ function changePass() {
     if (!a) return toast('Enter a new password','warn');
     if (a !== b) return toast('Passwords do not match','err');
     if (a.length < 8) return toast('Min 8 characters','err');
-    localStorage.setItem('ch_pass', a);
-    toast('Password updated ✓ — Remember this password!','ok');
-    document.getElementById('np1').value = '';
-    document.getElementById('np2').value = '';
+    if (!adminAuth || !adminAuth.currentUser) return toast('You must be signed in to change your password','err');
+
+    adminAuth.currentUser.updatePassword(a)
+        .then(function() {
+            toast('Password updated ✓ — Remember this password!','ok');
+            document.getElementById('np1').value = '';
+            document.getElementById('np2').value = '';
+        })
+        .catch(function(error) {
+            console.error('Password update failed:', error);
+            if (error.code === 'auth/requires-recent-login') {
+                toast('For security, log out and back in, then try again','err');
+            } else {
+                toast('Failed to update password: ' + error.message,'err');
+            }
+        });
 }
 
 function showErr(el, msg) {
@@ -748,10 +756,15 @@ function showErr(el, msg) {
 window.onload = function() {
     var pwd = document.getElementById('pwdInput');
     if (pwd) pwd.addEventListener('keypress', function(e) { if (e.key === 'Enter') doLogin(); });
-    if (localStorage.getItem('ch_auth') === '1') {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        boot();
+
+    if (adminAuth) {
+        adminAuth.onAuthStateChanged(function(user) {
+            if (user && user.email === ADMIN_EMAIL) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                boot();
+            }
+        });
     }
 };
 
@@ -1831,7 +1844,6 @@ function doSetup() {
     }
     var newCfg = Object.assign({}, cfg(), { token: token, user: user, repo: repo });
     localStorage.setItem('ch_cfg', JSON.stringify(newCfg));
-    localStorage.setItem('ch_auth', '1');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     boot();
@@ -1890,8 +1902,7 @@ async function doExportEncrypted() {
     }
 
     var s = cfg();
-    var pass = localStorage.getItem('ch_pass') || DEFAULT_PASS;
-    var exportData = { token: s.token||'', user: s.user||'', repo: s.repo||'', branch: s.branch||'main', bridge: s.bridge||'', bridgeRepo: s.bridgeRepo||'', bridgeBranch: s.bridgeBranch||'', pass: pass };
+    var exportData = { token: s.token||'', user: s.user||'', repo: s.repo||'', branch: s.branch||'main', bridge: s.bridge||'', bridgeRepo: s.bridgeRepo||'', bridgeBranch: s.bridgeBranch||'' };
 
     try {
         var salt = crypto.getRandomValues(new Uint8Array(16));
@@ -1966,7 +1977,6 @@ async function doImport() {
             branch: data.branch, bridge: data.bridge,
             bridgeRepo: data.bridgeRepo, bridgeBranch: data.bridgeBranch
         }));
-        if (data.pass) localStorage.setItem('ch_pass', data.pass);
 
         loadSettings();
         document.getElementById('importBox').style.display = 'none';

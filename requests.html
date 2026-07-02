@@ -402,6 +402,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <script>
         // Firebase Configuration - Updated with actual Firebase project values
@@ -418,11 +419,13 @@
         // Simple Auth System (Fallback if Firebase not configured)
         let useFirebase = false;
         let currentUser = null;
+        let requestsDB = null;
 
         try {
             // Try to initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
+            requestsDB = firebase.firestore();
             useFirebase = true;
             console.log('Firebase initialized successfully');
         } catch (error) {
@@ -600,8 +603,10 @@
                 return;
             }
 
+            const submitBtn = movieRequestForm.querySelector('.submit-btn');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'; }
+
             const request = {
-                id: Date.now().toString(),
                 userId: user.uid,
                 userName: user.displayName,
                 userEmail: user.email,
@@ -614,25 +619,34 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Store request in localStorage (in production, use a database)
-            const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
-            requests.push(request);
-            localStorage.setItem('movieRequests', JSON.stringify(requests));
+            function finishSubmit() {
+                movieRequestForm.reset();
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request'; }
+                loadUserRequests(user.uid);
+                alert('Your request has been submitted successfully!');
+            }
 
-            // Reset form
-            movieRequestForm.reset();
-            
-            // Reload requests
-            loadUserRequests(user.uid);
-            
-            alert('Your request has been submitted successfully!');
+            if (useFirebase && requestsDB) {
+                // Store request in Firestore so it's visible to the admin panel too
+                requestsDB.collection('movieRequests').add(request)
+                    .then(finishSubmit)
+                    .catch((error) => {
+                        console.error('Error submitting request:', error);
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request'; }
+                        alert('Failed to submit request. Please try again.');
+                    });
+            } else {
+                // Fallback: store request in localStorage (only visible on this device)
+                request.id = Date.now().toString();
+                const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+                requests.push(request);
+                localStorage.setItem('movieRequests', JSON.stringify(requests));
+                finishSubmit();
+            }
         });
 
         // Load User's Requests
-        function loadUserRequests(userId) {
-            const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
-            const userRequests = requests.filter(r => r.userId === userId);
-            
+        function renderMyRequests(userRequests) {
             if (userRequests.length === 0) {
                 myRequestsList.innerHTML = `
                     <div class="empty-requests">
@@ -643,6 +657,8 @@
                 return;
             }
 
+            userRequests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
             myRequestsList.innerHTML = userRequests.map(request => `
                 <div class="request-item">
                     <h3>${request.movieTitle} ${request.movieYear ? `(${request.movieYear})` : ''}</h3>
@@ -652,6 +668,24 @@
                     <span class="status-badge status-${request.status}">${request.status.toUpperCase()}</span>
                 </div>
             `).join('');
+        }
+
+        function loadUserRequests(userId) {
+            if (useFirebase && requestsDB) {
+                requestsDB.collection('movieRequests').where('userId', '==', userId).get()
+                    .then((snapshot) => {
+                        const userRequests = snapshot.docs.map(doc => Object.assign({ id: doc.id }, doc.data()));
+                        renderMyRequests(userRequests);
+                    })
+                    .catch((error) => {
+                        console.error('Error loading requests:', error);
+                        renderMyRequests([]);
+                    });
+            } else {
+                const requests = JSON.parse(localStorage.getItem('movieRequests') || '[]');
+                const userRequests = requests.filter(r => r.userId === userId);
+                renderMyRequests(userRequests);
+            }
         }
     </script>
 
