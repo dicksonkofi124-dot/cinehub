@@ -739,8 +739,8 @@ function doLogin() {
         .catch(function(error) {
             console.error('Admin sign-in failed:', error);
             var msg = 'Sign-in failed. Please try again.';
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                msg = 'Incorrect password. Please try again.';
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-login-credentials') {
+                msg = 'Incorrect email/password combo for ' + ADMIN_EMAIL + '. Double-check the account in Firebase Console → Authentication → Users.';
             } else if (error.code === 'auth/user-not-found') {
                 msg = 'No admin account found for ' + ADMIN_EMAIL + '. Check Firebase Console → Authentication → Users.';
             } else if (error.code === 'auth/api-key-not-valid') {
