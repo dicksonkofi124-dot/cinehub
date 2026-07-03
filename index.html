@@ -28,19 +28,19 @@
 
     <title>CineHub - Discover Amazing Movies</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Franklin:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
     <!-- ===== Human Verification Overlay ===== -->
-    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
+    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0B0E1A;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
         <div style="text-align:center;max-width:420px;width:100%;">
             <div style="font-size:3.5rem;margin-bottom:1rem;">&#127916;</div>
-            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
-            <p style="color:#aaa;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
+            <h1 style="color:#F5F1E8;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
+            <p style="color:#9B9BB5;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
 
-            <div style="background:#111;border:1px solid #333;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+            <div style="background:#12162A;border:1px solid rgba(245,241,232,0.12);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
                     <div id="verifyCheckbox" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;background:#1a1a1a;"></div>
                     <span id="verifyLabel" style="color:#e0e0e0;font-size:1rem;font-family:system-ui,sans-serif;cursor:pointer;">I am not a robot</span>
@@ -99,15 +99,17 @@
 
     <!-- Hero -->
     <section id="home" class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">Discover Amazing Movies</h1>
-            <p class="hero-subtitle">Explore thousands of movies from classics to blockbusters</p>
-            <div class="hero-buttons">
-                <button id="exploreBtn" class="btn btn-primary">Explore Movies</button>
-                <button id="trendingBtn" class="btn btn-secondary">Trending Now</button>
+        <div class="hero-bulbframe">
+            <div class="hero-content">
+                <span class="eyebrow">Now Showing</span>
+                <h1 class="hero-title">Discover Amazing Movies</h1>
+                <p class="hero-subtitle">Explore thousands of movies from classics to blockbusters</p>
+                <div class="hero-buttons">
+                    <button id="exploreBtn" class="btn btn-primary"><i class="fas fa-play"></i> Explore Movies</button>
+                    <button id="trendingBtn" class="btn btn-secondary">Trending Now</button>
+                </div>
             </div>
         </div>
-        <div class="hero-overlay"></div>
     </section>
 
     <!-- Filters -->
@@ -158,7 +160,10 @@
     <main id="movies" class="movies-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Popular Movies</h2>
+                <div class="section-heading">
+                    <span class="eyebrow">In Theaters</span>
+                    <h2 class="section-title">Popular Movies</h2>
+                </div>
                 <div class="view-toggle">
                     <button id="gridView" class="view-btn active"><i class="fas fa-th"></i></button>
                     <button id="listView" class="view-btn"><i class="fas fa-list"></i></button>
@@ -178,7 +183,10 @@
     <section id="series" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Series</h2>
+                <div class="section-heading">
+                    <span class="eyebrow">Binge Worthy</span>
+                    <h2 class="section-title">Series</h2>
+                </div>
                 <div class="view-toggle">
                     <button id="gridViewSeries" class="view-btn active"><i class="fas fa-th"></i></button>
                     <button id="listViewSeries" class="view-btn"><i class="fas fa-list"></i></button>
@@ -192,7 +200,10 @@
     <section id="animation" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Animation</h2>
+                <div class="section-heading">
+                    <span class="eyebrow">For Every Age</span>
+                    <h2 class="section-title">Animation</h2>
+                </div>
                 <div class="view-toggle">
                     <button id="gridViewAnimation" class="view-btn active"><i class="fas fa-th"></i></button>
                     <button id="listViewAnimation" class="view-btn"><i class="fas fa-list"></i></button>
@@ -206,7 +217,10 @@
     <section id="trending" class="movies-section" style="display: none;">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Trending This Week</h2>
+                <div class="section-heading">
+                    <span class="eyebrow">Hot Right Now</span>
+                    <h2 class="section-title">Trending This Week</h2>
+                </div>
                 <div class="view-toggle">
                     <button id="gridViewTrending" class="view-btn active"><i class="fas fa-th"></i></button>
                     <button id="listViewTrending" class="view-btn"><i class="fas fa-list"></i></button>
@@ -220,7 +234,10 @@
     <section id="watchlist" class="watchlist-section" style="display: none; padding: 2.5rem 0 5rem;">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">My Watchlist</h2>
+                <div class="section-heading">
+                    <span class="eyebrow">Saved For Later</span>
+                    <h2 class="section-title">My Watchlist</h2>
+                </div>
                 <button id="clearWatchlistBtn" class="btn btn-secondary">Clear Watchlist</button>
             </div>
             <!-- Your grid shell will now cleanly receive the stylized interactive button cards -->
@@ -345,9 +362,9 @@
                 function handleVerify() {
                     if (verified) return;
                     verified = true;
-                    box.style.background = '#e50914';
-                    box.style.borderColor = '#e50914';
-                    box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    box.style.background = '#F2B705';
+                    box.style.borderColor = '#F2B705';
+                    box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#1a1400" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                     btn.innerHTML = '&#10003; Verified! Loading...';
                     btn.style.background = '#2ecc71';
                     btn.style.boxShadow = 'none';
