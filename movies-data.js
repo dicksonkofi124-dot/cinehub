@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 9:11:02 PM
+// Updated: 7/3/2026, 9:47:26 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -61,6 +61,49 @@ const seriesData = {
                 6: "https://cinehub-bridge.onrender.com/download/3506869277/72",
                 7: "https://cinehub-bridge.onrender.com/download/3506869277/73",
                 8: "https://cinehub-bridge.onrender.com/download/3506869277/74",
+            },
+        }
+    },
+    129552: {
+        id: 129552,
+        title: "The Night Agent",
+        poster_path: "/4c5yUNcaff4W4aPrkXE6zr7papX.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/39",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/40",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/41",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/42",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/43",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/44",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/45",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/46",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/47",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/48",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/49",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/50",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/51",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/52",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/53",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/54",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/55",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/56",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/233",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/234",
+            },
+            3: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/235",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/236",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/237",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/238",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/239",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/240",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/241",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/242",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/243",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/244",
             },
         }
     },
