@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 9:55:29 PM
+// Updated: 7/3/2026, 10:01:13 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -94,6 +94,40 @@ const seriesData = {
             3: {
                 1: "https://cinehub-bridge.onrender.com/download/3506869277/324",
                 2: "https://cinehub-bridge.onrender.com/download/3506869277/325",
+            },
+        }
+    },
+    125988: {
+        id: 125988,
+        title: "Silo",
+        poster_path: "/gMYZZvnkVNTqSVnVCphWbPXwWwb.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/285",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/286",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/287",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/288",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/289",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/290",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/291",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/292",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/293",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/294",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/295",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/296",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/297",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/298",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/299",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/300",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/301",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/302",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/303",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/304",
+            },
+            3: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/305",
             },
         }
     },
