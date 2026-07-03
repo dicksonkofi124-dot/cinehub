@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPopularMovies();
     setupEventListeners();
 
+    // If this page was opened via a shared movie/series link, open it
+    openSharedLinkIfPresent();
+
     // ─── FIX 1: Remember current page on refresh ─────────────────────────
     const savedSection = window.location.hash.substring(1) || 'movies';
     switchSection(savedSection);
@@ -83,6 +86,15 @@ function setupEventListeners() {
 
     els.modalClose.addEventListener('click', closeModal);
     window.addEventListener('click', e => e.target === els.movieModal && closeModal());
+
+    const shareModalBtn = document.getElementById('shareModalBtn');
+    if (shareModalBtn) {
+        shareModalBtn.addEventListener('click', () => {
+            if (currentMovie) {
+                shareMovie(currentMovie.id, currentMovie.title, currentMovie.media_type || currentMovie.shareType || 'movie');
+            }
+        });
+    }
 
     els.exploreBtn.addEventListener('click', () => document.getElementById('movies').scrollIntoView({ behavior: 'smooth' }));
     els.trendingBtn.addEventListener('click', loadTrendingMovies);
@@ -145,6 +157,20 @@ function setupEventListeners() {
             const card = e.target.closest('.movie-card');
             const movieId = card ? parseInt(card.dataset.movieId) : currentMovie ? currentMovie.id : null;
             if (movieId) toggleWatchlist(movieId);
+        }
+    });
+
+    // Share button handler (on cards)
+    document.addEventListener('click', e => {
+        if (e.target.closest('.share-btn')) {
+            e.stopPropagation();
+            const card = e.target.closest('.movie-card');
+            if (card) {
+                const movieId = parseInt(card.dataset.movieId);
+                const movieTitle = card.dataset.movieTitle;
+                const mediaType = card.dataset.mediaType || 'movie';
+                shareMovie(movieId, movieTitle, mediaType);
+            }
         }
     });
 }
@@ -260,6 +286,7 @@ async function renderWatchlist() {
                 </div>
                 <div class="movie-overlay">
                     <button class="btn btn-secondary watchlist-btn">Remove</button>
+                    <button class="btn btn-secondary share-btn" title="Share"><i class="fas fa-share-alt"></i></button>
                 </div>
             </div>
         `).join('');
@@ -708,6 +735,7 @@ function renderSeriesProgressBanner(series, seriesKey) {
 // NEW: Display series episodes with dropdown season selector
 function displaySeriesModal(series, sourceType = 'series') {
     currentMovie = series;
+    currentMovie.shareType = sourceType;
     const seriesKey = getSeriesKey(series, sourceType);
 
     document.getElementById('modalPoster').src = series.poster_path 
@@ -970,6 +998,7 @@ function createMovieCard(movie) {
             </div>
             <div class="movie-overlay">
                 <button class="btn btn-secondary watchlist-btn">Add to Watchlist</button>
+                <button class="btn btn-secondary share-btn" title="Share"><i class="fas fa-share-alt"></i></button>
             </div>
         </div>
     `;
@@ -989,6 +1018,69 @@ function showNotification(message) {
         n.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => document.body.removeChild(n), 300);
     }, 3000);
+}
+
+// ─── Share Feature ─────────────────────────
+// Builds a link back to this exact movie/series, e.g.
+// https://cinehub-jet-ten.vercel.app/?id=12345&type=movie
+// On load, the app checks for these params and opens the matching item.
+
+function buildShareUrl(id, mediaType) {
+    const url = new URL(location.origin + location.pathname);
+    url.searchParams.set('id', id);
+    if (mediaType) url.searchParams.set('type', mediaType);
+    return url.toString();
+}
+
+function copyToClipboardFallback(text) {
+    const temp = document.createElement('textarea');
+    temp.value = text;
+    temp.style.position = 'fixed';
+    temp.style.opacity = '0';
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(temp);
+    return ok;
+}
+
+async function shareMovie(id, title, mediaType) {
+    if (!id) return;
+    const url = buildShareUrl(id, mediaType);
+    const shareText = title ? `Check out "${title}" on CineHub` : 'Check this out on CineHub';
+
+    // On phones, this opens the native share sheet (WhatsApp, Facebook, Messages, etc.)
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: title || 'CineHub', text: shareText, url });
+            return;
+        } catch (err) {
+            if (err && err.name === 'AbortError') return; // user cancelled the share sheet
+            // otherwise fall through to clipboard copy below
+        }
+    }
+
+    try {
+        await navigator.clipboard.writeText(url);
+        showNotification('Link copied to clipboard!');
+    } catch (err) {
+        if (copyToClipboardFallback(url)) {
+            showNotification('Link copied to clipboard!');
+        } else {
+            showNotification('Could not copy automatically — long-press the address bar to copy this page\'s link.');
+        }
+    }
+}
+
+// If this page was opened via a shared link (?id=...), open that item automatically
+function openSharedLinkIfPresent() {
+    const params = new URLSearchParams(location.search);
+    const sharedId = params.get('id');
+    if (!sharedId) return;
+    const id = parseInt(sharedId);
+    if (!isNaN(id)) showMovieDetails(id);
 }
 
 if (!document.getElementById('notification-styles')) {
