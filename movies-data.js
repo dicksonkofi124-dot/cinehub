@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 9:52:43 PM
+// Updated: 7/3/2026, 9:55:29 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -221,6 +221,23 @@ const seriesData = {
                 3: "https://cinehub-bridge.onrender.com/download/3506869277/213",
                 4: "https://cinehub-bridge.onrender.com/download/3506869277/214",
                 5: "https://cinehub-bridge.onrender.com/download/3506869277/215",
+            },
+        }
+    },
+    273240: {
+        id: 273240,
+        title: "Off Campus",
+        poster_path: "/cbODFqkcmRgrYH8NkG4Q4Hcg8Z1.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/2",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/4",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/5",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/6",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/7",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/8",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/9",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/10",
             },
         }
     },
