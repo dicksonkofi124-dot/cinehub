@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 8:52:01 PM
+// Updated: 7/3/2026, 9:07:44 PM
 
 const downloadLinks = {
     980489: "https://cinehub-bridge.onrender.com/download/home/479",
@@ -8,6 +8,32 @@ const downloadLinks = {
 };
 
 const seriesData = {
+    82452: {
+        id: 82452,
+        title: "Avatar: The Last Airbender",
+        poster_path: "/lzZpWEaqzP0qVA5nkCc5ASbNcSy.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/31",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/32",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/75",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/7",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/35",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/36",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/37",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/38",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/21698",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/21699",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/21700",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/527",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/21702",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/21703",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/21704",
+            },
+        }
+    },
     94245: {
         id: 94245,
         title: "Swagger",
