@@ -300,7 +300,7 @@ async function renderWatchlist() {
         });
 
     } catch (e) {
-        grid.innerHTML = '<p style="color:#e50914;text-align:center;padding:2rem;">Failed to load watchlist.</p>';
+        grid.innerHTML = '<p style="color:#E4495A;text-align:center;padding:2rem;">Failed to load watchlist.</p>';
     }
 }
 
@@ -749,7 +749,7 @@ function displaySeriesModal(series, sourceType = 'series') {
     document.getElementById('modalOverview').textContent = 'Select a season to view episodes';
 
     let seasonsHTML = '<div id="seriesProgressBanner"></div>';
-    seasonsHTML += '<h3 style="margin:15px 0 10px;color:#e50914;">Seasons</h3>';
+    seasonsHTML += '<h3 style="margin:15px 0 10px;color:#F2B705;">Seasons</h3>';
     let seasonToOpen = '';
 
     if (series.seasons) {
@@ -868,7 +868,7 @@ function displaySeasonEpisodes(series, seriesKey, seasonNum) {
 
     episodesContainer.innerHTML = `
         <div class="season-episodes-display">
-            <h4 style="margin:1rem 0 0.5rem;color:#e50914;">Season ${seasonNum} Episodes</h4>
+            <h4 style="margin:1rem 0 0.5rem;color:#F2B705;">Season ${seasonNum} Episodes</h4>
             ${episodesList}
         </div>
     `;
@@ -1009,8 +1009,9 @@ function showNotification(message) {
     n.className = 'notification';
     n.textContent = message;
     n.style.cssText = `
-        position:fixed;top:20px;right:20px;background:#e50914;color:white;
-        padding:1rem 1.5rem;border-radius:8px;z-index:3000;
+        position:fixed;top:20px;right:20px;background:#F2B705;color:#1a1400;
+        padding:1rem 1.5rem;border-radius:8px;z-index:3000;font-weight:700;
+        box-shadow:0 10px 30px rgba(0,0,0,0.4);
         animation:slideIn 0.3s ease;
     `;
     document.body.appendChild(n);
