@@ -213,6 +213,23 @@ body {
     transform: translateY(-2px);
 }
 
+.movie-overlay {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.movie-overlay .watchlist-btn {
+    flex: 1;
+}
+
+.movie-overlay .share-btn,
+.movie-actions #shareModalBtn {
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    padding: 0.85rem 1rem !important;
+}
+
 /* Filters */
 .filter-section {
     padding: 1.6rem 0;
