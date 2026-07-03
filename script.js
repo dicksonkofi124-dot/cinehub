@@ -1214,3 +1214,4 @@ async function handleTrailer(movieId, title, mediaType) {
     if (trailer) displayTrailer(trailer);
     else showNotification('No trailer available for this title.');
 }
+        
