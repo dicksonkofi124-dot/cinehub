@@ -1,7 +1,8 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 9:07:44 PM
+// Updated: 7/3/2026, 9:11:02 PM
 
 const downloadLinks = {
+    83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
     980489: "https://cinehub-bridge.onrender.com/download/home/479",
     1122573: "https://cinehub-bridge.onrender.com/download/home/478",
     1306368: "https://cinehub-bridge.onrender.com/download/home/420",
