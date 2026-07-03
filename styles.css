@@ -26,6 +26,8 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 body {
@@ -34,6 +36,8 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* Force dark background on overlays/modals */
@@ -215,19 +219,24 @@ body {
 
 .movie-overlay {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
     align-items: stretch;
+    padding: 0 0.6rem 0.6rem;
 }
 
 .movie-overlay .watchlist-btn {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0 !important;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.78rem;
+    white-space: normal;
 }
 
 .movie-overlay .share-btn,
 .movie-actions #shareModalBtn {
     flex: 0 0 auto !important;
     min-width: auto !important;
-    padding: 0.85rem 1rem !important;
+    padding: 0.55rem 0.7rem !important;
 }
 
 /* Filters */
@@ -300,8 +309,8 @@ body {
 
 .movies-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1.4rem;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 30vw, 170px), 1fr));
+    gap: 1rem;
 }
 
 /* Movie Card */
@@ -660,10 +669,56 @@ body {
 @media (max-width: 480px) {
     .hero-title { font-size: 2.3rem; }
     .btn { padding: 0.75rem 1.5rem; font-size: 0.92rem; }
-    .movies-grid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 1rem; }
-    
+    .movies-grid { gap: 0.8rem; }
+
     .footer-content {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 2rem;
     }
+}
+
+@media (max-width: 360px) {
+    .container { padding: 0 0.85rem; }
+    .movies-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 0.6rem; }
+    .movie-info { padding: 0.6rem; }
+    .movie-overlay { padding: 0 0.4rem 0.4rem; gap: 0.3rem; }
+    .movie-title { font-size: 0.85rem; }
+}
+
+/* Movie detail modal: stack on phones, two-column on tablet/desktop */
+.movie-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.movie-poster-container img {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+    display: block;
+    border-radius: var(--radius);
+}
+
+@media (min-width: 700px) {
+    .movie-details {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .movie-poster-container {
+        flex: 0 0 260px;
+    }
+    .movie-poster-container img {
+        max-width: 100%;
+    }
+    .movie-info {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.movie-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
