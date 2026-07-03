@@ -66,8 +66,8 @@
             <div class="nav-container">
                 <div class="nav-logo">
                     <a href="#home" style="text-decoration: none; color: inherit;">
-                        <i class="fas fa-film"></i>
-                        <span>CineHub</span>
+                        <i class="fas fa-ticket-simple"></i>
+                        <span>Cine<em>Hub</em></span>
                     </a>
                 </div>
                 <div class="nav-menu">
@@ -115,8 +115,9 @@
     <!-- Filters -->
     <section class="filter-section">
         <div class="container">
+            <div class="genre-chips" id="genreChips"></div>
             <div class="filter-container">
-                <select id="genreFilter" class="filter-select">
+                <select id="genreFilter" class="filter-select visually-hidden">
                     <option value="">All Genres</option>
                     <option value="28">Action</option>
                     <option value="12">Adventure</option>
@@ -155,6 +156,37 @@
             </div>
         </div>
     </section>
+
+    <script>
+        // Genre pill chips — a friendlier visual layer over the existing
+        // #genreFilter <select>. Clicking a chip sets the select's value
+        // and fires a native 'change' event, so all existing filter logic
+        // in script.js keeps working untouched.
+        (function () {
+            function buildChips() {
+                var select = document.getElementById('genreFilter');
+                var wrap = document.getElementById('genreChips');
+                if (!select || !wrap) return;
+
+                var options = Array.prototype.slice.call(select.options);
+                wrap.innerHTML = options.map(function (opt, i) {
+                    var label = opt.value === '' ? 'All' : opt.textContent;
+                    return '<button type="button" class="chip' + (i === 0 ? ' chip-active' : '') +
+                        '" data-value="' + opt.value + '">' + label + '</button>';
+                }).join('');
+
+                wrap.addEventListener('click', function (e) {
+                    var btn = e.target.closest('.chip');
+                    if (!btn) return;
+                    wrap.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('chip-active'); });
+                    btn.classList.add('chip-active');
+                    select.value = btn.dataset.value;
+                    select.dispatchEvent(new Event('change'));
+                });
+            }
+            document.addEventListener('DOMContentLoaded', buildChips);
+        })();
+    </script>
 
     <!-- Movies Section -->
     <main id="movies" class="movies-section">
@@ -303,7 +335,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="footer-logo">
-                        <i class="fas fa-film"></i> CineHub
+                        <i class="fas fa-ticket-simple"></i> Cine<em>Hub</em>
                     </div>
                     <p>Your ultimate destination for discovering movies</p>
                 </div>
