@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 10:01:13 PM
+// Updated: 7/3/2026, 10:17:20 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -9,6 +9,63 @@ const downloadLinks = {
 };
 
 const seriesData = {
+    76479: {
+        id: 76479,
+        title: "The Boys",
+        poster_path: "/in1R2dDc421JxsoRWaIIAqVI2KE.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/245",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/246",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/247",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/248",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/249",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/250",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/251",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/252",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/13",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/254",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/255",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/256",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/257",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/258",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/259",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/260",
+            },
+            3: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/261",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/262",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/263",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/264",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/265",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/266",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/267",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/268",
+            },
+            4: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/895",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/270",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/897",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/272",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/273",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/274",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/275",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/276",
+            },
+            5: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/907",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/908",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/279",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/280",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/281",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/282",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/914",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/284",
+            },
+        }
+    },
     82452: {
         id: 82452,
         title: "Avatar: The Last Airbender",
