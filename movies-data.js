@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 9:47:26 PM
+// Updated: 7/3/2026, 9:52:43 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -61,6 +61,39 @@ const seriesData = {
                 6: "https://cinehub-bridge.onrender.com/download/3506869277/72",
                 7: "https://cinehub-bridge.onrender.com/download/3506869277/73",
                 8: "https://cinehub-bridge.onrender.com/download/3506869277/74",
+            },
+        }
+    },
+    94997: {
+        id: 94997,
+        title: "House of the Dragon",
+        poster_path: "/7V0Ebks0GgpKvQ7QbLAIdX5dos4.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/306",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/307",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/308",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/309",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/310",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/311",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/312",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/313",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/314",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/315",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/316",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/317",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/318",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/319",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/320",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/321",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/322",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/323",
+            },
+            3: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/324",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/325",
             },
         }
     },
