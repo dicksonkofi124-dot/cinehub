@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 8:47:19 PM
+// Updated: 7/3/2026, 8:52:01 PM
 
 const downloadLinks = {
     980489: "https://cinehub-bridge.onrender.com/download/home/479",
@@ -8,6 +8,35 @@ const downloadLinks = {
 };
 
 const seriesData = {
+    94245: {
+        id: 94245,
+        title: "Swagger",
+        poster_path: "/nASkt8izgpR4toMYgiAnxfjWcE2.jpg",
+        seasons: {
+            1: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/57",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/58",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/59",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/60",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/61",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/62",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/63",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/64",
+                9: "https://cinehub-bridge.onrender.com/download/3506869277/65",
+                10: "https://cinehub-bridge.onrender.com/download/3506869277/66",
+            },
+            2: {
+                1: "https://cinehub-bridge.onrender.com/download/3506869277/67",
+                2: "https://cinehub-bridge.onrender.com/download/3506869277/68",
+                3: "https://cinehub-bridge.onrender.com/download/3506869277/69",
+                4: "https://cinehub-bridge.onrender.com/download/3506869277/70",
+                5: "https://cinehub-bridge.onrender.com/download/3506869277/71",
+                6: "https://cinehub-bridge.onrender.com/download/3506869277/72",
+                7: "https://cinehub-bridge.onrender.com/download/3506869277/73",
+                8: "https://cinehub-bridge.onrender.com/download/3506869277/74",
+            },
+        }
+    },
     133174: {
         id: 133174,
         title: "All the Queen's Men",
