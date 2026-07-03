@@ -54,6 +54,16 @@ body {
     outline-offset: 2px;
 }
 
+.visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* Force dark background on overlays/modals */
 .modal,
 .modal-content,
@@ -111,6 +121,11 @@ body {
 }
 
 .nav-logo i { margin-right: 0.4rem; }
+.nav-logo em,
+.footer-logo em {
+    font-style: normal;
+    color: var(--text-main);
+}
 
 .nav-list {
     display: none;
@@ -353,6 +368,7 @@ body {
     flex-wrap: wrap;
     gap: 0.9rem;
     justify-content: center;
+    margin-top: 1rem;
 }
 
 .filter-select {
@@ -372,6 +388,43 @@ body {
 .filter-select:hover {
     border-color: var(--primary);
     outline: none;
+}
+
+/* Genre pill chips */
+.genre-chips {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 0.2rem;
+}
+
+.genre-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+    flex: 0 0 auto;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.chip:hover {
+    border-color: var(--primary);
+    color: var(--text-main);
+}
+
+.chip-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-ink);
 }
 
 /* Movies & Trending Section */
