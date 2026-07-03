@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineHub - Request Movies</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Franklin:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
         :root {
-            --primary: #e50914;
-            --primary-hover: #b20710;
-            --bg-dark: #0a0a0a;
-            --bg-card: #111111;
-            --text-main: #e0e0e0;
-            --text-muted: #aaaaaa;
-            --border: #333333;
+            --primary: #F2B705;
+            --primary-hover: #d9a400;
+            --primary-ink: #1a1400;
+            --bg-dark: #0B0E1A;
+            --bg-card: #12162A;
+            --text-main: #F5F1E8;
+            --text-muted: #9B9BB5;
+            --border: rgba(245,241,232,0.10);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Libre Franklin', sans-serif;
             background: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
@@ -39,8 +40,10 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-family: 'Bebas Neue', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            font-size: 2.8rem;
             color: var(--primary);
             margin-bottom: 0.5rem;
         }
@@ -137,7 +140,7 @@
         .logout-btn {
             margin-left: auto;
             padding: 0.5rem 1rem;
-            background: rgba(229, 9, 20, 0.1);
+            background: rgba(242, 183, 5, 0.1);
             color: var(--primary);
             border: 1px solid var(--primary);
             border-radius: 6px;
@@ -148,7 +151,7 @@
 
         .logout-btn:hover {
             background: var(--primary);
-            color: white;
+            color: var(--primary-ink);
         }
 
         .form-group {
@@ -172,7 +175,7 @@
             border-radius: 8px;
             color: white;
             font-size: 1rem;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Libre Franklin', sans-serif;
             outline: none;
             transition: border-color 0.2s;
         }
@@ -192,7 +195,7 @@
             width: 100%;
             padding: 1rem;
             background: var(--primary);
-            color: white;
+            color: var(--primary-ink);
             border: none;
             border-radius: 8px;
             font-size: 1.1rem;
@@ -234,7 +237,10 @@
         }
 
         .my-requests h2 {
-            font-size: 1.5rem;
+            font-family: 'Bebas Neue', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            font-size: 1.7rem;
             margin-bottom: 1.5rem;
         }
 
@@ -263,6 +269,7 @@
             border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .status-pending {
@@ -375,13 +382,13 @@
         </div>
     </div>
 
-    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
+    <div id="verifyOverlay" style="position:fixed;inset:0;background:#0B0E1A;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
         <div style="text-align:center;max-width:420px;width:100%;">
             <div style="font-size:3.5rem;margin-bottom:1rem;">&#127916;</div>
-            <h1 style="color:white;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
-            <p style="color:#aaa;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
+            <h1 style="color:#F5F1E8;font-size:2rem;font-weight:900;margin-bottom:0.5rem;font-family:system-ui,sans-serif;">CineHub</h1>
+            <p style="color:#9B9BB5;font-size:1rem;margin-bottom:2.5rem;font-family:system-ui,sans-serif;">Your ultimate movie destination</p>
 
-            <div style="background:#111;border:1px solid #333;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+            <div style="background:#12162A;border:1px solid rgba(245,241,232,0.12);border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
                 <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
                     <div id="verifyCheckbox" style="width:28px;height:28px;border:2px solid #555;border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
                     <span id="verifyLabel" style="color:#e0e0e0;font-size:1rem;font-family:system-ui,sans-serif;cursor:pointer;">I am not a robot</span>
@@ -707,9 +714,9 @@
                 function handleVerify() {
                     if (verified) return;
                     verified = true;
-                    box.style.background = '#e50914';
-                    box.style.borderColor = '#e50914';
-                    box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    box.style.background = '#F2B705';
+                    box.style.borderColor = '#F2B705';
+                    box.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#1a1400" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                     btn.innerHTML = '&#10003; Verified! Loading...';
                     btn.style.background = '#2ecc71';
                     btn.style.boxShadow = 'none';
