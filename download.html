@@ -425,7 +425,8 @@
                     console.error('Bridge server error:', error);
 
                     // Fallback: catalog entries added via the admin panel (movies-data.js)
-                    const dlKey = window.downloadLinks && (window.downloadLinks[messageId] || window.downloadLinks[parseInt(messageId)]);
+                    const dlEntry = window.downloadLinks && (window.downloadLinks[messageId] || window.downloadLinks[parseInt(messageId)]);
+                    const dlKey = (dlEntry && typeof dlEntry === 'object') ? dlEntry.url : dlEntry;
 
                     if (dlKey) {
                         fetch(`${BASE_URL}/movie/${messageId}?api_key=${API_KEY}`)
