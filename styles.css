@@ -538,6 +538,26 @@ body {
     font-weight: 600;
 }
 
+.movie-size {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.movie-size i {
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
 /* Modal, Cast, Trailer Modal */
 .modal {
     display: none;
@@ -763,6 +783,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     padding: 0.9rem 1.2rem;
     border-bottom: 1px solid var(--border);
     transition: background var(--transition);
@@ -781,6 +803,21 @@ body {
     font-size: 0.92rem;
     color: var(--text-main);
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.episode-size {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
 }
 
 .episode-download-btn {
@@ -795,6 +832,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    flex-shrink: 0;
     transition: background var(--transition);
 }
 
