@@ -322,8 +322,8 @@
                     <h3 id="userName">User Name</h3>
                     <p id="userEmail">user@email.com</p>
                 </div>
-                <button id="logoutBtn" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                <button id="logoutBtn" class="logout-btn" title="Switch to a different account">
+                    <i class="fas fa-sign-out-alt"></i> Not you? Sign Out
                 </button>
             </div>
 
@@ -432,6 +432,10 @@
             // Try to initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
+            // Only stay signed in for this browser session — closing the tab/app
+            // signs the device out, so the next visitor always sees a fresh
+            // sign-in prompt instead of the previous person's account.
+            auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
             requestsDB = firebase.firestore();
             useFirebase = true;
             console.log('Firebase initialized successfully');
@@ -454,16 +458,16 @@
                         email: email,
                         photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=e50914&color=fff`
                     };
-                    localStorage.setItem('simpleAuthUser', JSON.stringify(user));
+                    sessionStorage.setItem('simpleAuthUser', JSON.stringify(user));
                     resolve(user);
                 });
             },
             signOut: function() {
-                localStorage.removeItem('simpleAuthUser');
+                sessionStorage.removeItem('simpleAuthUser');
                 return Promise.resolve();
             },
             getCurrentUser: function() {
-                const userStr = localStorage.getItem('simpleAuthUser');
+                const userStr = sessionStorage.getItem('simpleAuthUser');
                 return userStr ? JSON.parse(userStr) : null;
             },
             onAuthStateChanged: function(callback) {
