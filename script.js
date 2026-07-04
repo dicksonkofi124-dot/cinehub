@@ -813,7 +813,17 @@ function displaySeriesModal(series, sourceType = 'series') {
 // Turns a stored bridge stream URL (https://.../download/{channelId}/{messageId})
 // into the params download.html expects, so episode downloads go through the
 // same verified, multi-method download manager as movie downloads do.
-function buildEpisodeDownloadPageUrl(rawUrl, episodeName) {
+// An episode's stored value can be either a legacy plain string (URL only)
+// or a new { url, size } object — same convention as window.downloadLinks.
+function entryUrl(entry) {
+    return (entry && typeof entry === 'object') ? entry.url : entry;
+}
+function entrySize(entry) {
+    return (entry && typeof entry === 'object') ? (entry.size || '') : '';
+}
+
+function buildEpisodeDownloadPageUrl(rawEntry, episodeName) {
+    const rawUrl = entryUrl(rawEntry);
     const match = rawUrl.match(/\/download\/([^\/]+)\/(\d+)\/?(?:\?.*)?$/);
     if (match) {
         const [, channelId, messageId] = match;
@@ -854,10 +864,12 @@ function displaySeasonEpisodes(series, seriesKey, seasonNum) {
         const isNext = epNum === nextEpisode;
         const episodeName = `${series.title} - Season ${seasonNum} Episode ${epNum}`;
         const downloadPageUrl = buildEpisodeDownloadPageUrl(episodes[epNum], episodeName);
+        const epSize = entrySize(episodes[epNum]);
         return `
         <div class="episode-item${downloaded ? ' episode-downloaded' : ''}">
             <span class="episode-number">
                 Episode ${epNum}${downloaded ? ' <i class="fas fa-check-circle episode-check" title="Downloaded"></i>' : ''}${!downloaded && isNext ? ' <span class="continue-badge">CONTINUE HERE</span>' : ''}
+                ${epSize ? `<span class="episode-size">${epSize}</span>` : ''}
             </span>
             <button class="episode-download-btn${downloaded ? ' downloaded' : ''}" data-download-url="${downloadPageUrl.replace(/"/g, '&quot;')}" data-season="${seasonNum}" data-episode="${epNum}">
                 <i class="fas fa-download"></i> ${downloaded ? 'Downloaded' : 'Download'}
@@ -907,6 +919,18 @@ function displayMovieModal(movie) {
 
     document.getElementById('modalRating').textContent = movie.vote_average ? `⭐ ${movie.vote_average.toFixed(1)}` : 'N/A';
     document.getElementById('modalOverview').textContent = movie.overview || 'No overview available.';
+
+    const modalSizeEl = document.getElementById('modalSize');
+    if (modalSizeEl) {
+        const dlEntry = window.downloadLinks && window.downloadLinks[movie.id];
+        const fileSize = (dlEntry && typeof dlEntry === 'object' && dlEntry.size) ? dlEntry.size : '';
+        if (fileSize) {
+            modalSizeEl.innerHTML = `<i class="fas fa-hard-drive"></i> ${fileSize}`;
+            modalSizeEl.style.display = 'block';
+        } else {
+            modalSizeEl.style.display = 'none';
+        }
+    }
 
     document.getElementById('modalGenres').innerHTML = movie.genres?.map(g => 
         `<span class="genre-tag">${g.name}</span>`
@@ -986,6 +1010,9 @@ function createMovieCard(movie) {
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
     const mediaType = movie.media_type || 'movie';
 
+    const dlEntry = window.downloadLinks && window.downloadLinks[movie.id];
+    const fileSize = (dlEntry && typeof dlEntry === 'object' && dlEntry.size) ? dlEntry.size : '';
+
     return `
         <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="${mediaType}">
             <img src="${poster}" alt="${movie.title}" class="movie-poster" loading="lazy">
@@ -995,6 +1022,7 @@ function createMovieCard(movie) {
                     <span>${year}</span>
                     <span class="rating">⭐ ${rating}</span>
                 </div>
+                ${fileSize ? `<div class="movie-size"><i class="fas fa-hard-drive"></i> ${fileSize}</div>` : ''}
             </div>
             <div class="movie-overlay">
                 <button class="btn btn-secondary watchlist-btn">Add to Watchlist</button>
