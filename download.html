@@ -385,7 +385,9 @@
             // ── Direct link (TDrive Cloud "Download" button) ──────────────────
             // Already a complete, ready-to-use URL — just show it as ready.
             titleEl.textContent = nameParam || "Your Requested File";
-            showDownloadReady(linkParam, "Direct download from your device.", nameParam);
+            const linkSizeParam = urlParams.get('size');
+            const linkSourceInfo = "Direct download from your device." + (linkSizeParam ? ` · ${linkSizeParam}` : '');
+            showDownloadReady(linkParam, linkSourceInfo, nameParam);
 
         } else if (msgParam) {
             // ── Direct share-link format (TDrive Cloud "Copy Link") ───────────
@@ -396,7 +398,9 @@
             const streamUrl = chParam
                 ? `${BRIDGE_API}/download/${chParam}/${msgParam}`
                 : `${BRIDGE_API}/download/home/${msgParam}`;
-            const sourceInfo = chParam ? ("Source: TD Channel #" + chParam) : "Source: Saved Messages";
+            const sizeParam = urlParams.get('size');
+            let sourceInfo = chParam ? ("Source: TD Channel #" + chParam) : "Source: Saved Messages";
+            if (sizeParam) sourceInfo += ` · ${sizeParam}`;
 
             showDownloadReady(streamUrl, sourceInfo, nameParam);
 
