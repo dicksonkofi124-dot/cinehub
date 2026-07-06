@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/6/2026, 2:58:30 PM
+// Updated: 7/6/2026, 3:24:37 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -605,6 +605,53 @@ const seriesData = {
 };
 
 const animationData = {
+    95557: {
+        id: 95557,
+        title: "INVINCIBLE",
+        poster_path: "/4tblBrslcKSifMVZ3TmtT2ukMor.jpg",
+        seasons: {
+            1: {
+                1: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/5", size: "258 MB", quality: "720p" }] },
+                2: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/6", size: "302 MB", quality: "720p" }] },
+                3: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/7", size: "231 MB", quality: "720p" }] },
+                4: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/8", size: "178 MB", quality: "720p" }] },
+                5: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/9", size: "246 MB", quality: "720p" }] },
+                6: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/10", size: "207 MB", quality: "720p" }] },
+                7: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/11", size: "260 MB", quality: "720p" }] },
+                8: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/12", size: "267 MB", quality: "720p" }] },
+            },
+            2: {
+                1: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/13", size: "253 MB", quality: "720p" }] },
+                2: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/14", size: "230 MB", quality: "720p" }] },
+                3: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/15", size: "204 MB", quality: "720p" }] },
+                4: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/16", size: "219 MB", quality: "720p" }] },
+                5: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/17", size: "217 MB", quality: "720p" }] },
+                6: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/18", size: "228 MB", quality: "720p" }] },
+                7: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/19", size: "206 MB", quality: "720p" }] },
+                8: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/20", size: "215 MB", quality: "720p" }] },
+            },
+            3: {
+                1: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/21", size: "250 MB", quality: "720p" }] },
+                2: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/22", size: "220 MB", quality: "720p" }] },
+                3: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/23", size: "215 MB", quality: "720p" }] },
+                4: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/24", size: "423 MB", quality: "720p" }] },
+                5: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/25", size: "206 MB", quality: "720p" }] },
+                6: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/26", size: "410 MB", quality: "720p" }] },
+                7: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/27", size: "152 MB", quality: "720p" }] },
+                8: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/28", size: "151 MB", quality: "720p" }] },
+            },
+            4: {
+                1: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/29", size: "168 MB", quality: "720p" }] },
+                2: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/30", size: "143 MB", quality: "720p" }] },
+                3: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/32", size: "166 MB", quality: "720p" }] },
+                4: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/33", size: "273 MB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3808397897/31", size: "130 MB", quality: "720p" }] },
+                5: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/35", size: "305 MB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3808397897/34", size: "147 MB", quality: "720p" }] },
+                6: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/37", size: "277 MB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3808397897/36", size: "132 MB", quality: "720p" }] },
+                7: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/39", size: "360 MB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3808397897/38", size: "172 MB", quality: "720p" }] },
+                8: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/41", size: "111 MB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3808397897/41", size: "111 MB", quality: "720p" }] },
+            },
+        }
+    },
 };
 
 window.downloadLinks = downloadLinks;
