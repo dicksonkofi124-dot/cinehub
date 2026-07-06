@@ -820,6 +820,50 @@ body {
     white-space: nowrap;
 }
 
+/* Quality picker — shown instead of a single Download button whenever a
+   movie or episode has more than one format available (720p/1080p/etc). */
+.quality-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.movie-actions .quality-group {
+    flex-basis: 100%;
+}
+
+.quality-btn {
+    min-width: 0 !important;
+    font-size: 0.85rem !important;
+    padding: 0.6rem 1rem !important;
+    white-space: nowrap;
+}
+
+.episode-item .quality-group {
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+.episode-item .quality-btn {
+    background: var(--primary);
+    color: var(--primary-ink);
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: background var(--transition);
+}
+
+.episode-item .quality-btn:hover {
+    background: var(--primary-hover);
+}
+
+.episode-item .quality-btn.downloaded {
+    background: var(--bg-raised);
+    color: var(--text-muted);
+}
+
 .episode-download-btn {
     background: var(--primary);
     color: var(--primary-ink);
