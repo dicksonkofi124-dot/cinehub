@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/6/2026, 12:02:46 PM
+// Updated: 7/6/2026, 12:36:20 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -433,6 +433,21 @@ const seriesData = {
                 3: "https://cinehub-bridge.onrender.com/download/3506869277/213",
                 4: "https://cinehub-bridge.onrender.com/download/3506869277/214",
                 5: "https://cinehub-bridge.onrender.com/download/3506869277/215",
+            },
+        }
+    },
+    224372: {
+        id: 224372,
+        title: "A Knight of the Seven Kingdoms",
+        poster_path: "/k8yARbD9iYn2nRX2HvsopfKDN2r.jpg",
+        seasons: {
+            1: {
+                1: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/429", size: "236 MB", quality: "720p" }] },
+                2: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/431", size: "202 MB", quality: "720p" }] },
+                3: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/441", size: "201 MB", quality: "720p" }] },
+                4: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/435", size: "157 MB", quality: "720p" }] },
+                5: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/437", size: "194 MB", quality: "720p" }] },
+                6: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3506869277/439", size: "186 MB", quality: "720p" }] },
             },
         }
     },
