@@ -1787,11 +1787,17 @@ function detectUrlType(url, infoId, keyId) {
                 .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
             movieKeyEl.value = autoMovieKey;
         }
+        // Also fill Message ID / Channel ID so the size-detect button has
+        // something to read — these previously only got filled for episodes.
+        var movieMsgEl = document.getElementById('movieMsgId');
+        if (movieMsgEl) movieMsgEl.value = shareParsed.messageId;
+        var movieChanEl = document.getElementById('movieChannelId');
+        if (movieChanEl) movieChanEl.value = shareParsed.channelId || '';
         var shareInfo = shareParsed.channelId
             ? '📡 <strong>TD Channel share link detected!</strong><br>Channel ID: <code>'+shareParsed.channelId+'</code> &middot; Message ID: <code>'+shareParsed.messageId+'</code>'
             : '💾 <strong>Saved Messages share link detected!</strong><br>Message ID: <code>'+shareParsed.messageId+'</code>';
         infoEl.style.cssText = 'display:block;padding:0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;font-size:0.83rem;color:#2ecc71;margin-bottom:0.75rem';
-        infoEl.innerHTML = shareInfo + '<br>✅ All fields auto-filled — just hit Save & Deploy.';
+        infoEl.innerHTML = shareInfo + '<br>✅ All fields auto-filled — hit "Detect" next to File Size below, then Save & Deploy.';
         if (keyGroup) keyGroup.style.display = 'none';
         return;
     }
@@ -1874,8 +1880,8 @@ function detectEpUrlType(url, infoId, keyId, msgId, chanId) {
             ? '📡 Channel <code>'+epShareParsed.channelId+'</code> · Message ID <code>'+epShareParsed.messageId+'</code>'
             : '💾 Saved Messages · Message ID <code>'+epShareParsed.messageId+'</code>';
         infoEl.style.cssText = 'display:block;padding:0.5rem 0.75rem;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:6px;font-size:0.78rem;color:#2ecc71;margin-bottom:0.5rem';
-        infoEl.innerHTML = '✅ Share link detected — '+epShareInfo+'. All fields filled automatically.';
-        if (bridgeGroup) bridgeGroup.style.display = 'none';
+        infoEl.innerHTML = '✅ Share link detected — '+epShareInfo+'. Hit "Detect" below to grab the file size, then Save.';
+        if (bridgeGroup) bridgeGroup.style.display = 'flex';
         return;
     }
 
