@@ -360,12 +360,37 @@
                         </div>
                         <div id="movieUrlInfo" style="display:none;margin-bottom:0.75rem"></div>
                         <div class="fg">
+                            <label>Quality Label (optional)</label>
+                            <input type="text" id="movieQuality" placeholder="e.g. 1080p" list="qualityPresets">
+                            <datalist id="qualityPresets">
+                                <option value="480p"><option value="720p"><option value="1080p"><option value="4K">
+                            </datalist>
+                        </div>
+                        <div class="fg">
                             <label>File Size (optional)</label>
                             <div style="display:flex;gap:0.5rem">
                                 <input type="text" id="movieFileSize" placeholder="e.g. 2.1 GB" style="flex:1">
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('movieMsgId','movieChannelId','movieFileSize',this)" style="flex-shrink:0"><i class="fas fa-magnifying-glass"></i> Detect</button>
                             </div>
                             <small style="color:var(--muted);font-size:0.75rem;margin-top:3px">Shown on the movie card and detail page. "Detect" reads the real size from Telegram — only works for Telegram/bridge links, once Message ID is filled in above.</small>
+                        </div>
+                        <div class="card" style="background:#0e1224;margin-top:0.5rem">
+                            <div class="card-title" style="font-size:0.9rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats (optional)</div>
+                            <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.75rem">Add extra quality versions of the same movie (must be Telegram/bridge links). Users will see a quality picker on the site instead of a single Download button.</small>
+                            <div id="movieFormatsList" style="margin-bottom:0.75rem"></div>
+                            <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+                                <div class="fg" style="margin:0;flex:0 0 110px"><label>Quality</label><input type="text" id="movieExtraQuality" placeholder="720p" list="qualityPresets"></div>
+                                <div class="fg" style="margin:0;flex:0 0 110px"><label>Message ID</label><input type="number" id="movieExtraMsgId" placeholder="480" min="1"></div>
+                                <div class="fg" style="margin:0;flex:0 0 140px"><label>Channel ID</label><input type="text" id="movieExtraChannelId" placeholder="optional"></div>
+                                <div class="fg" style="margin:0;flex:1;min-width:140px">
+                                    <label>Size</label>
+                                    <div style="display:flex;gap:0.4rem">
+                                        <input type="text" id="movieExtraSize" placeholder="e.g. 700 MB" style="flex:1">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('movieExtraMsgId','movieExtraChannelId','movieExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" style="align-self:flex-end" onclick="addExtraFormat('movie')"><i class="fas fa-plus"></i> Add</button>
+                            </div>
                         </div>
                         <!-- TDrive old-format link fields -->
                         <div id="movieKeyGroup" style="display:none">
@@ -431,12 +456,29 @@
                             <div class="fg" style="margin:0;flex:0 0 140px"><label>Episode Key</label><input type="text" id="sKey" placeholder="off-campus-s1e1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
                             <div class="fg" style="margin:0;flex:0 0 120px"><label>Message ID</label><input type="number" id="sMsgId" placeholder="2" min="1"></div>
                             <div class="fg" style="margin:0;flex:0 0 150px"><label>Channel ID</label><input type="text" id="sChannelId" placeholder="3506869277"></div>
+                            <div class="fg" style="margin:0;flex:0 0 110px"><label>Quality</label><input type="text" id="sQuality" placeholder="1080p" list="qualityPresets"></div>
                             <div class="fg" style="margin:0;flex:0 0 170px">
                                 <label>File Size (optional)</label>
                                 <div style="display:flex;gap:0.4rem">
                                     <input type="text" id="sFileSize" placeholder="e.g. 890 MB" style="flex:1">
                                     <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('sMsgId','sChannelId','sFileSize',this)" style="flex-shrink:0"><i class="fas fa-magnifying-glass"></i></button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background:#0e1224;margin-bottom:0.75rem">
+                            <div class="card-title" style="font-size:0.85rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats for This Episode (optional)</div>
+                            <div id="sFormatsList" style="margin-bottom:0.6rem"></div>
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="text" id="sExtraQuality" placeholder="720p" list="qualityPresets"></div>
+                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="number" id="sExtraMsgId" placeholder="Msg ID" min="1"></div>
+                                <div class="fg" style="margin:0;flex:0 0 120px"><input type="text" id="sExtraChannelId" placeholder="Channel (opt)"></div>
+                                <div class="fg" style="margin:0;flex:1;min-width:120px">
+                                    <div style="display:flex;gap:0.4rem">
+                                        <input type="text" id="sExtraSize" placeholder="Size" style="flex:1">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('sExtraMsgId','sExtraChannelId','sExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addExtraFormat('s')"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
                         <div id="epsSeries"></div>
@@ -471,12 +513,29 @@
                             <div class="fg" style="margin:0;flex:0 0 140px"><label>Episode Key</label><input type="text" id="aKey" placeholder="invincible-s4e1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"></div>
                             <div class="fg" style="margin:0;flex:0 0 120px"><label>Message ID</label><input type="number" id="aMsgId" placeholder="480" min="1"></div>
                             <div class="fg" style="margin:0;flex:0 0 150px"><label>Channel ID</label><input type="text" id="aChannelId" placeholder="3506869277"></div>
+                            <div class="fg" style="margin:0;flex:0 0 110px"><label>Quality</label><input type="text" id="aQuality" placeholder="1080p" list="qualityPresets"></div>
                             <div class="fg" style="margin:0;flex:0 0 170px">
                                 <label>File Size (optional)</label>
                                 <div style="display:flex;gap:0.4rem">
                                     <input type="text" id="aFileSize" placeholder="e.g. 890 MB" style="flex:1">
                                     <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('aMsgId','aChannelId','aFileSize',this)" style="flex-shrink:0"><i class="fas fa-magnifying-glass"></i></button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background:#0e1224;margin-bottom:0.75rem">
+                            <div class="card-title" style="font-size:0.85rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats for This Episode (optional)</div>
+                            <div id="aFormatsList" style="margin-bottom:0.6rem"></div>
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="text" id="aExtraQuality" placeholder="720p" list="qualityPresets"></div>
+                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="number" id="aExtraMsgId" placeholder="Msg ID" min="1"></div>
+                                <div class="fg" style="margin:0;flex:0 0 120px"><input type="text" id="aExtraChannelId" placeholder="Channel (opt)"></div>
+                                <div class="fg" style="margin:0;flex:1;min-width:120px">
+                                    <div style="display:flex;gap:0.4rem">
+                                        <input type="text" id="aExtraSize" placeholder="Size" style="flex:1">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('aExtraMsgId','aExtraChannelId','aExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addExtraFormat('a')"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
                         <div id="epsAnim"></div>
@@ -977,13 +1036,93 @@ function parseCode(code) {
 }
 
 // A movie's download-links entry can be either a legacy plain string (URL
-// only) or a new { url, size } object. These helpers let every consumer
-// read either shape safely without caring which one it is.
+// only) or a new { url, size } object, or a { formats: [...] } multi-format
+// object. These helpers let every consumer read any shape safely.
 function dlUrl(entry) {
-    return (entry && typeof entry === 'object') ? entry.url : entry;
+    if (entry && typeof entry === 'object') {
+        if (Array.isArray(entry.formats)) return entry.formats[0] ? entry.formats[0].url : '';
+        return entry.url;
+    }
+    return entry;
 }
 function dlSize(entry) {
-    return (entry && typeof entry === 'object') ? (entry.size || '') : '';
+    if (entry && typeof entry === 'object') {
+        if (Array.isArray(entry.formats)) {
+            return entry.formats.length > 1
+                ? entry.formats.map(function(f){ return (f.quality||'?')+': '+(f.size||'—'); }).join(', ')
+                : (entry.formats[0] ? (entry.formats[0].size || '') : '');
+        }
+        return entry.size || '';
+    }
+    return '';
+}
+
+// ── MULTI-FORMAT BUILDER (movie / series / animation episodes) ───────────────
+var formatFields = {
+    movie: { quality: 'movieExtraQuality', msg: 'movieExtraMsgId', chan: 'movieExtraChannelId', size: 'movieExtraSize', list: 'movieFormatsList' },
+    s:     { quality: 'sExtraQuality',     msg: 'sExtraMsgId',     chan: 'sExtraChannelId',     size: 'sExtraSize',     list: 'sFormatsList' },
+    a:     { quality: 'aExtraQuality',     msg: 'aExtraMsgId',     chan: 'aExtraChannelId',     size: 'aExtraSize',     list: 'aFormatsList' }
+};
+var extraFormats = { movie: [], s: [], a: [] };
+
+function addExtraFormat(key) {
+    var f = formatFields[key];
+    var msgEl  = document.getElementById(f.msg);
+    var msgId  = msgEl ? msgEl.value.trim() : '';
+    if (!msgId) return toast('Enter a Message ID first', 'warn');
+
+    var chanEl  = document.getElementById(f.chan);
+    var channelId = chanEl ? chanEl.value.trim() : '';
+    var qualEl  = document.getElementById(f.quality);
+    var quality = qualEl ? qualEl.value.trim() : '';
+    var sizeEl  = document.getElementById(f.size);
+    var size    = sizeEl ? sizeEl.value.trim() : '';
+
+    var s = cfg();
+    var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
+    var url = bridgeBase + '/download/' + (channelId || 'home') + '/' + msgId;
+
+    extraFormats[key].push({ quality: quality, url: url, size: size });
+    renderExtraFormats(key);
+
+    if (msgEl)  msgEl.value  = '';
+    if (qualEl) qualEl.value = '';
+    if (sizeEl) sizeEl.value = '';
+    if (chanEl) chanEl.value = '';
+}
+
+function removeExtraFormat(key, idx) {
+    extraFormats[key].splice(idx, 1);
+    renderExtraFormats(key);
+}
+
+function renderExtraFormats(key) {
+    var f = formatFields[key];
+    var el = document.getElementById(f.list);
+    if (!el) return;
+    var list = extraFormats[key];
+    el.innerHTML = list.map(function(fmt, i) {
+        return '<div class="ep-row"><span class="ep-badge">'+(fmt.quality||'Extra')+'</span>' +
+            '<span class="ep-url">'+fmt.url+'</span>' +
+            (fmt.size ? '<span style="font-size:0.7rem;color:var(--muted);margin:0 6px;font-family:\'JetBrains Mono\',monospace;flex-shrink:0">'+fmt.size+'</span>' : '') +
+            '<button class="ep-del" onclick="removeExtraFormat(\''+key+'\','+i+')"><i class="fas fa-times"></i></button></div>';
+    }).join('');
+}
+
+function resetExtraFormats(key) {
+    extraFormats[key] = [];
+    renderExtraFormats(key);
+}
+
+// Given a primary {quality,url,size} plus any extras added for `key`,
+// collapses to the simplest possible storage shape — a plain string or
+// {url,size} when there's only one unlabeled format, otherwise {formats:[]}.
+function collapseFormats(primary, key) {
+    var all = [primary].concat(extraFormats[key]);
+    if (all.length === 1 && !all[0].quality) {
+        return all[0].size ? { url: all[0].url, size: all[0].size } : all[0].url;
+    }
+    return { formats: all };
 }
 
 // Calls the bridge's /filesize endpoint to auto-fill a size field from the
@@ -1022,17 +1161,28 @@ async function detectSize(msgFieldId, chanFieldId, sizeFieldId, btn) {
     }
 }
 
+function serializeFormat(f) {
+    var parts = ['url: "'+f.url+'"'];
+    if (f.size) parts.push('size: "'+String(f.size).replace(/"/g,'\\"')+'"');
+    if (f.quality) parts.push('quality: "'+String(f.quality).replace(/"/g,'\\"')+'"');
+    return '{ '+parts.join(', ')+' }';
+}
+
+function serializeEntry(entry) {
+    if (entry && typeof entry === 'object' && Array.isArray(entry.formats)) {
+        return '{ formats: ['+entry.formats.map(serializeFormat).join(', ')+'] }';
+    }
+    if (entry && typeof entry === 'object' && entry.size) {
+        return '{ url: "'+entry.url+'", size: "'+String(entry.size).replace(/"/g,'\\"')+'" }';
+    }
+    return '"'+(entry && typeof entry === 'object' ? entry.url : entry)+'"';
+}
+
 function buildCode() {
     var out = '// movies-data.js — Managed by CineHub Admin\n// Updated: '+new Date().toLocaleString()+'\n\n';
     out += 'const downloadLinks = {\n';
     Object.keys(db.dl).forEach(function(id) {
-        var entry = db.dl[id];
-        var size = dlSize(entry);
-        if (size) {
-            out += '    '+id+': { url: "'+dlUrl(entry)+'", size: "'+size.replace(/"/g,'\\"')+'" },\n';
-        } else {
-            out += '    '+id+': "'+dlUrl(entry)+'",\n';
-        }
+        out += '    '+id+': '+serializeEntry(db.dl[id])+',\n';
     });
     out += '};\n\nconst seriesData = {\n';
     Object.keys(db.series).forEach(function(id) {
@@ -1044,13 +1194,7 @@ function buildCode() {
         Object.keys(s.seasons).forEach(function(sn) {
             out += '            '+sn+': {\n';
             Object.keys(s.seasons[sn]).forEach(function(ep) {
-                var epEntry = s.seasons[sn][ep];
-                var epSize = dlSize(epEntry);
-                if (epSize) {
-                    out += '                '+ep+': { url: "'+dlUrl(epEntry)+'", size: "'+epSize.replace(/"/g,'\\"')+'" },\n';
-                } else {
-                    out += '                '+ep+': "'+dlUrl(epEntry)+'",\n';
-                }
+                out += '                '+ep+': '+serializeEntry(s.seasons[sn][ep])+',\n';
             });
             out += '            },\n';
         });
@@ -1066,13 +1210,7 @@ function buildCode() {
         Object.keys(a.seasons).forEach(function(sn) {
             out += '            '+sn+': {\n';
             Object.keys(a.seasons[sn]).forEach(function(ep) {
-                var epEntry2 = a.seasons[sn][ep];
-                var epSize2 = dlSize(epEntry2);
-                if (epSize2) {
-                    out += '                '+ep+': { url: "'+dlUrl(epEntry2)+'", size: "'+epSize2.replace(/"/g,'\\"')+'" },\n';
-                } else {
-                    out += '                '+ep+': "'+dlUrl(epEntry2)+'",\n';
-                }
+                out += '                '+ep+': '+serializeEntry(a.seasons[sn][ep])+',\n';
             });
             out += '            },\n';
         });
@@ -1233,7 +1371,9 @@ async function saveMovie() {
 
     var fileSize = (document.getElementById('movieFileSize') || {}).value || '';
     fileSize = fileSize.trim();
-    db.dl[m.id] = fileSize ? { url: finalUrl, size: fileSize } : finalUrl;
+    var quality = (document.getElementById('movieQuality') || {}).value || '';
+    quality = quality.trim();
+    db.dl[m.id] = collapseFormats({ quality: quality, url: finalUrl, size: fileSize }, 'movie');
     var ok = await deploy('Add movie: '+m.title);
     if (ok) {
         var msg = m.title + ' added! ✓';
@@ -1241,9 +1381,10 @@ async function saveMovie() {
         toast(msg, 'ok');
         // Reset form
         document.getElementById('movieForm').style.display = 'none';
-        ['movieUrl','movieKey','movieKeyBridge','movieMsgId','movieChannelId','movieFileSize'].forEach(function(id) {
+        ['movieUrl','movieKey','movieKeyBridge','movieMsgId','movieChannelId','movieFileSize','movieQuality'].forEach(function(id) {
             var el = document.getElementById(id); if (el) el.value = '';
         });
+        resetExtraFormats('movie');
         ['movieKeyGroup','movieBridgeGroup','movieUrlInfo'].forEach(function(id) {
             var el = document.getElementById(id); if (el) el.style.display = 'none';
         });
@@ -1293,19 +1434,29 @@ async function addEp(type) {
 
     if (!eps[type][sn]) eps[type][sn] = {};
     var epSizeFieldId = isA ? 'aFileSize' : 'sFileSize';
+    var epQualityFieldId = isA ? 'aQuality' : 'sQuality';
     var epSize = (document.getElementById(epSizeFieldId) || {}).value || '';
     epSize = epSize.trim();
-    eps[type][sn][en] = epSize ? { url: finalUrl, size: epSize } : finalUrl;
+    var epQuality = (document.getElementById(epQualityFieldId) || {}).value || '';
+    epQuality = epQuality.trim();
+    var formatKey = isA ? 'a' : 's';
+    var finalEntry = collapseFormats({ quality: epQuality, url: finalUrl, size: epSize }, formatKey);
+    var formatCount = 1 + extraFormats[formatKey].length;
+    eps[type][sn][en] = finalEntry;
 
     var container = document.getElementById(isA?'epsAnim':'epsSeries');
     var row = document.createElement('div');
     row.className = 'ep-row';
     row.dataset.key = type+'_'+sn+'_'+en;
     var isBridge = finalUrl.includes('cinehub-bridge.onrender.com');
+    var sizeLabel = formatCount > 1
+        ? [{quality:epQuality,size:epSize}].concat(extraFormats[formatKey]).map(function(f){ return (f.quality||'?')+(f.size?' ('+f.size+')':''); }).join(', ')
+        : epSize;
     row.innerHTML = '<span class="ep-badge">S'+sn+'E'+en+'</span>' +
         (isBridge ? '<span style="font-size:0.65rem;background:rgba(243,156,18,0.2);color:#f7c56a;padding:1px 5px;border-radius:3px;margin-right:4px">⚡</span>' : '') +
-        '<span class="ep-url">'+finalUrl+'</span>' +
-        (epSize ? '<span style="font-size:0.7rem;color:var(--muted);margin:0 6px;font-family:\'JetBrains Mono\',monospace;flex-shrink:0">'+epSize+'</span>' : '') +
+        (formatCount > 1 ? '<span style="font-size:0.65rem;background:rgba(46,204,113,0.2);color:#2ecc71;padding:1px 5px;border-radius:3px;margin-right:4px">'+formatCount+' formats</span>' : '') +
+        '<span class="ep-url">'+finalUrl+(formatCount > 1 ? ' + '+(formatCount-1)+' more' : '')+'</span>' +
+        (sizeLabel ? '<span style="font-size:0.7rem;color:var(--muted);margin:0 6px;font-family:\'JetBrains Mono\',monospace;flex-shrink:0">'+sizeLabel+'</span>' : '') +
         '<button class="ep-del" onclick="removeEp(this,\''+type+'\','+sn+','+en+')"><i class="fas fa-times"></i></button>';
     container.appendChild(row);
 
@@ -1316,6 +1467,8 @@ async function addEp(type) {
     if (document.getElementById(epMsgId)) document.getElementById(epMsgId).value = '';
     if (document.getElementById(epChanId)) document.getElementById(epChanId).value = '';
     if (document.getElementById(epSizeFieldId)) document.getElementById(epSizeFieldId).value = '';
+    if (document.getElementById(epQualityFieldId)) document.getElementById(epQualityFieldId).value = '';
+    resetExtraFormats(formatKey);
     var bg = document.getElementById(isA?'aEpBridgeGroup':'sEpBridgeGroup');
     if (bg) bg.style.display = 'none';
     var inf = document.getElementById(isA?'aEpInfo':'sEpInfo');
@@ -2326,4 +2479,3 @@ goTo = function(page) {
 </script>
 </body>
 </html>
-                                                                                                  
