@@ -1134,6 +1134,9 @@ async function detectSize(msgFieldId, chanFieldId, sizeFieldId, btn) {
     var msgId  = msgEl ? msgEl.value.trim() : '';
     var chanId = chanEl ? chanEl.value.trim() : '';
 
+    // Clear any previous error state
+    if (sizeEl) { sizeEl.style.borderColor = ''; sizeEl.placeholder = sizeEl.dataset.defaultPlaceholder || sizeEl.placeholder; }
+
     if (!msgId) return toast('Enter the Message ID first','warn');
 
     var s = cfg();
@@ -1144,6 +1147,14 @@ async function detectSize(msgFieldId, chanFieldId, sizeFieldId, btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
+    function showFieldError(msg) {
+        if (!sizeEl) return;
+        if (!sizeEl.dataset.defaultPlaceholder) sizeEl.dataset.defaultPlaceholder = sizeEl.placeholder;
+        sizeEl.value = '';
+        sizeEl.placeholder = '⚠ ' + msg;
+        sizeEl.style.borderColor = '#e74c3c';
+    }
+
     try {
         var r = await fetch(url);
         var data = await r.json();
@@ -1151,9 +1162,11 @@ async function detectSize(msgFieldId, chanFieldId, sizeFieldId, btn) {
             sizeEl.value = data.size;
             toast('Detected: ' + data.size, 'ok');
         } else {
+            showFieldError(data.error || 'Bridge returned an error');
             toast('Could not detect size: ' + (data.error || 'unknown error'), 'err');
         }
     } catch (e) {
+        showFieldError('Could not reach the bridge (' + e.message + ')');
         toast('Detect failed: ' + e.message, 'err');
     } finally {
         btn.disabled = false;
