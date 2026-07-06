@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/6/2026, 12:36:20 PM
+// Updated: 7/6/2026, 12:38:05 PM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -126,6 +126,7 @@ const seriesData = {
                 15: { url: "https://cinehub-bridge.onrender.com/download/3506869277/424", size: "426 MB" },
                 16: { url: "https://cinehub-bridge.onrender.com/download/3506869277/425", size: "507 MB" },
                 17: { url: "https://cinehub-bridge.onrender.com/download/3506869277/426", size: "351 MB" },
+                18: { url: "https://cinehub-bridge.onrender.com/download/3506869277/427", size: "367 MB" },
             },
         }
     },
