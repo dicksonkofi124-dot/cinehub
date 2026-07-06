@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/3/2026, 10:17:20 PM
+// Updated: 7/6/2026, 11:03:36 AM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -9,6 +9,16 @@ const downloadLinks = {
 };
 
 const seriesData = {
+    61733: {
+        id: 61733,
+        title: "Empire",
+        poster_path: "/gTrzYR6gWMhQ8yINW9JCLeoJHvf.jpg",
+        seasons: {
+            1: {
+                1: { url: "https://cinehub-bridge.onrender.com/download/3506869277/326", size: "378.0MB" },
+            },
+        }
+    },
     76479: {
         id: 76479,
         title: "The Boys",
