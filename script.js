@@ -822,21 +822,37 @@ function entrySize(entry) {
     return (entry && typeof entry === 'object') ? (entry.size || '') : '';
 }
 
-function buildEpisodeDownloadPageUrl(rawEntry, episodeName) {
+// Normalizes ANY download-link entry (movie or episode) into a flat array of
+// { quality, url, size }. Handles all three shapes that can exist:
+//   "https://..."                                    (legacy, single format)
+//   { url: "...", size: "2.1 GB" }                    (single format + size)
+//   { formats: [{quality,url,size}, {quality,url,size}] }   (multi-format)
+// Callers never need to care which shape is actually stored.
+function dlFormats(entry) {
+    if (entry == null) return [];
+    if (typeof entry === 'string') return [{ quality: '', url: entry, size: '' }];
+    if (Array.isArray(entry.formats)) return entry.formats;
+    return [{ quality: '', url: entry.url, size: entry.size || '' }];
+}
+
+function buildFormatDownloadUrl(rawEntry, name, sizeOverride) {
     const rawUrl = entryUrl(rawEntry);
+    const size = sizeOverride || entrySize(rawEntry);
     const match = rawUrl.match(/\/download\/([^\/]+)\/(\d+)\/?(?:\?.*)?$/);
     if (match) {
         const [, channelId, messageId] = match;
         const params = new URLSearchParams();
         params.set('msg', messageId);
         if (channelId && channelId !== 'home') params.set('ch', channelId);
-        params.set('name', episodeName);
+        params.set('name', name);
+        if (size) params.set('size', size);
         return `download.html?${params.toString()}`;
     }
     // Fallback: not in the expected bridge format — pass it through as a direct link
     const params = new URLSearchParams();
     params.set('link', rawUrl);
-    params.set('name', episodeName);
+    params.set('name', name);
+    if (size) params.set('size', size);
     return `download.html?${params.toString()}`;
 }
 
@@ -863,17 +879,26 @@ function displaySeasonEpisodes(series, seriesKey, seasonNum) {
         const downloaded = isEpisodeDownloaded(seriesKey, seasonNum, epNum);
         const isNext = epNum === nextEpisode;
         const episodeName = `${series.title} - Season ${seasonNum} Episode ${epNum}`;
-        const downloadPageUrl = buildEpisodeDownloadPageUrl(episodes[epNum], episodeName);
-        const epSize = entrySize(episodes[epNum]);
+        const formats = dlFormats(episodes[epNum]);
+        const epSize = formats.length === 1 ? formats[0].size : '';
+
+        const downloadControls = formats.length > 1
+            ? `<div class="quality-group">${formats.map(f => {
+                    const url = buildFormatDownloadUrl(f, episodeName);
+                    const label = f.quality || 'Download';
+                    return `<button class="episode-download-btn quality-btn${downloaded ? ' downloaded' : ''}" data-download-url="${url.replace(/"/g, '&quot;')}" data-season="${seasonNum}" data-episode="${epNum}">${label}${f.size ? ` · ${f.size}` : ''}</button>`;
+                }).join('')}</div>`
+            : `<button class="episode-download-btn${downloaded ? ' downloaded' : ''}" data-download-url="${buildFormatDownloadUrl(episodes[epNum], episodeName).replace(/"/g, '&quot;')}" data-season="${seasonNum}" data-episode="${epNum}">
+                <i class="fas fa-download"></i> ${downloaded ? 'Downloaded' : 'Download'}
+            </button>`;
+
         return `
         <div class="episode-item${downloaded ? ' episode-downloaded' : ''}">
             <span class="episode-number">
                 Episode ${epNum}${downloaded ? ' <i class="fas fa-check-circle episode-check" title="Downloaded"></i>' : ''}${!downloaded && isNext ? ' <span class="continue-badge">CONTINUE HERE</span>' : ''}
                 ${epSize ? `<span class="episode-size">${epSize}</span>` : ''}
             </span>
-            <button class="episode-download-btn${downloaded ? ' downloaded' : ''}" data-download-url="${downloadPageUrl.replace(/"/g, '&quot;')}" data-season="${seasonNum}" data-episode="${epNum}">
-                <i class="fas fa-download"></i> ${downloaded ? 'Downloaded' : 'Download'}
-            </button>
+            ${downloadControls}
         </div>
     `;
     }).join('');
@@ -923,7 +948,8 @@ function displayMovieModal(movie) {
     const modalSizeEl = document.getElementById('modalSize');
     if (modalSizeEl) {
         const dlEntry = window.downloadLinks && window.downloadLinks[movie.id];
-        const fileSize = (dlEntry && typeof dlEntry === 'object' && dlEntry.size) ? dlEntry.size : '';
+        const formatsForSize = dlFormats(dlEntry);
+        const fileSize = formatsForSize.length === 1 ? formatsForSize[0].size : '';
         if (fileSize) {
             modalSizeEl.innerHTML = `<i class="fas fa-hard-drive"></i> ${fileSize}`;
             modalSizeEl.style.display = 'block';
@@ -948,7 +974,27 @@ function displayMovieModal(movie) {
 
     // Show the download button for movies and route through Download Manager
     const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
+    const formatsGroup = document.getElementById('modalDownloadFormats');
+    const dlEntryForModal = window.downloadLinks && window.downloadLinks[movie.id];
+    const formats = dlFormats(dlEntryForModal);
+
+    if (formats.length > 1 && formatsGroup) {
+        // Multiple quality options — show a picker instead of the single button
+        if (downloadBtn) downloadBtn.style.display = 'none';
+        formatsGroup.style.display = 'flex';
+        formatsGroup.innerHTML = formats.map(f => {
+            const url = buildFormatDownloadUrl(f, movie.title);
+            const label = f.quality || 'Download';
+            return `<button class="btn btn-primary quality-btn" data-download-url="${url.replace(/"/g, '&quot;')}">
+                <i class="fas fa-download"></i> ${label}${f.size ? ` · ${f.size}` : ''}
+            </button>`;
+        }).join('');
+        formatsGroup.querySelectorAll('.quality-btn').forEach(btn => {
+            btn.onclick = () => window.open(btn.dataset.downloadUrl, '_blank');
+        });
+    } else if (downloadBtn) {
+        // Single format (or none yet) — existing behavior, unchanged
+        if (formatsGroup) formatsGroup.style.display = 'none';
         downloadBtn.style.display = 'inline-flex';
         downloadBtn.onclick = () => {
             const movieId = movie.id;
@@ -1011,7 +1057,8 @@ function createMovieCard(movie) {
     const mediaType = movie.media_type || 'movie';
 
     const dlEntry = window.downloadLinks && window.downloadLinks[movie.id];
-    const fileSize = (dlEntry && typeof dlEntry === 'object' && dlEntry.size) ? dlEntry.size : '';
+    const cardFormats = dlFormats(dlEntry);
+    const fileSize = cardFormats.length === 1 ? cardFormats[0].size : '';
 
     return `
         <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="${mediaType}">
@@ -1242,4 +1289,3 @@ async function handleTrailer(movieId, title, mediaType) {
     if (trailer) displayTrailer(trailer);
     else showNotification('No trailer available for this title.');
 }
-        
