@@ -378,18 +378,23 @@
                             <div class="card-title" style="font-size:0.9rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats (optional)</div>
                             <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.75rem">Add extra quality versions of the same movie (must be Telegram/bridge links). Users will see a quality picker on the site instead of a single Download button.</small>
                             <div id="movieFormatsList" style="margin-bottom:0.75rem"></div>
-                            <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+                            <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:flex-end">
                                 <div class="fg" style="margin:0;flex:0 0 110px"><label>Quality</label><input type="text" id="movieExtraQuality" placeholder="720p" list="qualityPresets"></div>
-                                <div class="fg" style="margin:0;flex:0 0 110px"><label>Message ID</label><input type="number" id="movieExtraMsgId" placeholder="480" min="1"></div>
-                                <div class="fg" style="margin:0;flex:0 0 140px"><label>Channel ID</label><input type="text" id="movieExtraChannelId" placeholder="optional"></div>
-                                <div class="fg" style="margin:0;flex:1;min-width:140px">
+                                <div class="fg" style="margin:0;flex:1;min-width:200px">
+                                    <label>Paste Link or Message ID</label>
+                                    <input type="text" id="movieExtraLink" placeholder="Share link or bare message ID" oninput="handleExtraLinkInput('movie')">
+                                    <input type="hidden" id="movieExtraMsgId">
+                                    <input type="hidden" id="movieExtraChannelId">
+                                    <div id="movieExtraInfo" style="display:none"></div>
+                                </div>
+                                <div class="fg" style="margin:0;flex:0 0 160px">
                                     <label>Size</label>
                                     <div style="display:flex;gap:0.4rem">
                                         <input type="text" id="movieExtraSize" placeholder="e.g. 700 MB" style="flex:1">
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('movieExtraMsgId','movieExtraChannelId','movieExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-primary btn-sm" style="align-self:flex-end" onclick="addExtraFormat('movie')"><i class="fas fa-plus"></i> Add</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="addExtraFormat('movie')"><i class="fas fa-plus"></i> Add</button>
                             </div>
                         </div>
                         <!-- TDrive old-format link fields -->
@@ -468,11 +473,15 @@
                         <div class="card" style="background:#0e1224;margin-bottom:0.75rem">
                             <div class="card-title" style="font-size:0.85rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats for This Episode (optional)</div>
                             <div id="sFormatsList" style="margin-bottom:0.6rem"></div>
-                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="text" id="sExtraQuality" placeholder="720p" list="qualityPresets"></div>
-                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="number" id="sExtraMsgId" placeholder="Msg ID" min="1"></div>
-                                <div class="fg" style="margin:0;flex:0 0 120px"><input type="text" id="sExtraChannelId" placeholder="Channel (opt)"></div>
-                                <div class="fg" style="margin:0;flex:1;min-width:120px">
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end">
+                                <div class="fg" style="margin:0;flex:0 0 90px"><input type="text" id="sExtraQuality" placeholder="720p" list="qualityPresets"></div>
+                                <div class="fg" style="margin:0;flex:1;min-width:160px">
+                                    <input type="text" id="sExtraLink" placeholder="Paste link or Message ID" oninput="handleExtraLinkInput('s')">
+                                    <input type="hidden" id="sExtraMsgId">
+                                    <input type="hidden" id="sExtraChannelId">
+                                    <div id="sExtraInfo" style="display:none"></div>
+                                </div>
+                                <div class="fg" style="margin:0;flex:0 0 130px">
                                     <div style="display:flex;gap:0.4rem">
                                         <input type="text" id="sExtraSize" placeholder="Size" style="flex:1">
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('sExtraMsgId','sExtraChannelId','sExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
@@ -480,6 +489,11 @@
                                 </div>
                                 <button type="button" class="btn btn-primary btn-sm" onclick="addExtraFormat('s')"><i class="fas fa-plus"></i></button>
                             </div>
+                        </div>
+                        <div id="sExistingEpsCard" class="card" style="display:none;background:#0e1224;margin-bottom:0.75rem">
+                            <div class="card-title" style="font-size:0.9rem"><i class="fas fa-list" style="color:var(--red)"></i> Existing Episodes</div>
+                            <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.6rem">Already saved and live on the site. Delete removes it immediately on next deploy.</small>
+                            <div id="sExistingEps" style="max-height:260px;overflow-y:auto"></div>
                         </div>
                         <div id="epsSeries"></div>
                         <div style="display:flex;gap:0.75rem;margin-top:1rem">
@@ -525,11 +539,15 @@
                         <div class="card" style="background:#0e1224;margin-bottom:0.75rem">
                             <div class="card-title" style="font-size:0.85rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats for This Episode (optional)</div>
                             <div id="aFormatsList" style="margin-bottom:0.6rem"></div>
-                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="text" id="aExtraQuality" placeholder="720p" list="qualityPresets"></div>
-                                <div class="fg" style="margin:0;flex:0 0 100px"><input type="number" id="aExtraMsgId" placeholder="Msg ID" min="1"></div>
-                                <div class="fg" style="margin:0;flex:0 0 120px"><input type="text" id="aExtraChannelId" placeholder="Channel (opt)"></div>
-                                <div class="fg" style="margin:0;flex:1;min-width:120px">
+                            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end">
+                                <div class="fg" style="margin:0;flex:0 0 90px"><input type="text" id="aExtraQuality" placeholder="720p" list="qualityPresets"></div>
+                                <div class="fg" style="margin:0;flex:1;min-width:160px">
+                                    <input type="text" id="aExtraLink" placeholder="Paste link or Message ID" oninput="handleExtraLinkInput('a')">
+                                    <input type="hidden" id="aExtraMsgId">
+                                    <input type="hidden" id="aExtraChannelId">
+                                    <div id="aExtraInfo" style="display:none"></div>
+                                </div>
+                                <div class="fg" style="margin:0;flex:0 0 130px">
                                     <div style="display:flex;gap:0.4rem">
                                         <input type="text" id="aExtraSize" placeholder="Size" style="flex:1">
                                         <button type="button" class="btn btn-secondary btn-sm" onclick="detectSize('aExtraMsgId','aExtraChannelId','aExtraSize',this)"><i class="fas fa-magnifying-glass"></i></button>
@@ -537,6 +555,11 @@
                                 </div>
                                 <button type="button" class="btn btn-primary btn-sm" onclick="addExtraFormat('a')"><i class="fas fa-plus"></i></button>
                             </div>
+                        </div>
+                        <div id="aExistingEpsCard" class="card" style="display:none;background:#0e1224;margin-bottom:0.75rem">
+                            <div class="card-title" style="font-size:0.9rem"><i class="fas fa-list" style="color:var(--red)"></i> Existing Episodes</div>
+                            <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.6rem">Already saved and live on the site. Delete removes it immediately on next deploy.</small>
+                            <div id="aExistingEps" style="max-height:260px;overflow-y:auto"></div>
                         </div>
                         <div id="epsAnim"></div>
                         <div style="display:flex;gap:0.75rem;margin-top:1rem">
@@ -1059,17 +1082,65 @@ function dlSize(entry) {
 
 // ── MULTI-FORMAT BUILDER (movie / series / animation episodes) ───────────────
 var formatFields = {
-    movie: { quality: 'movieExtraQuality', msg: 'movieExtraMsgId', chan: 'movieExtraChannelId', size: 'movieExtraSize', list: 'movieFormatsList' },
-    s:     { quality: 'sExtraQuality',     msg: 'sExtraMsgId',     chan: 'sExtraChannelId',     size: 'sExtraSize',     list: 'sFormatsList' },
-    a:     { quality: 'aExtraQuality',     msg: 'aExtraMsgId',     chan: 'aExtraChannelId',     size: 'aExtraSize',     list: 'aFormatsList' }
+    movie: { quality: 'movieExtraQuality', link: 'movieExtraLink', msg: 'movieExtraMsgId', chan: 'movieExtraChannelId', size: 'movieExtraSize', list: 'movieFormatsList', info: 'movieExtraInfo' },
+    s:     { quality: 'sExtraQuality',     link: 'sExtraLink',     msg: 'sExtraMsgId',     chan: 'sExtraChannelId',     size: 'sExtraSize',     list: 'sFormatsList',     info: 'sExtraInfo' },
+    a:     { quality: 'aExtraQuality',     link: 'aExtraLink',     msg: 'aExtraMsgId',     chan: 'aExtraChannelId',     size: 'aExtraSize',     list: 'aFormatsList',     info: 'aExtraInfo' }
 };
 var extraFormats = { movie: [], s: [], a: [] };
+
+// Mirrors the convenience of the main "paste a link" flow: parses a TDrive/
+// bridge share link (or a bare message ID) and fills in the hidden msg/channel
+// fields automatically, so you don't have to manually copy IDs out of the link.
+function handleExtraLinkInput(key) {
+    var f = formatFields[key];
+    var linkEl = document.getElementById(f.link);
+    var msgEl  = document.getElementById(f.msg);
+    var chanEl = document.getElementById(f.chan);
+    var infoEl = document.getElementById(f.info);
+    var raw = linkEl ? linkEl.value.trim() : '';
+
+    if (!raw) {
+        if (msgEl) msgEl.value = '';
+        if (chanEl) chanEl.value = '';
+        if (infoEl) infoEl.style.display = 'none';
+        return;
+    }
+
+    var parsed = parseShareLink(raw);
+    if (parsed) {
+        if (msgEl) msgEl.value = parsed.messageId;
+        if (chanEl) chanEl.value = parsed.channelId || '';
+        if (infoEl) {
+            infoEl.style.cssText = 'display:block;color:#2ecc71;font-size:0.72rem;margin-top:0.3rem';
+            infoEl.textContent = '✓ ' + (parsed.channelId ? 'Channel ' + parsed.channelId + ', ' : '') + 'Message ' + parsed.messageId;
+        }
+        return;
+    }
+
+    // Fallback: a bare numeric message ID (Saved Messages), typed directly
+    if (/^\d+$/.test(raw)) {
+        if (msgEl) msgEl.value = raw;
+        if (chanEl) chanEl.value = '';
+        if (infoEl) {
+            infoEl.style.cssText = 'display:block;color:#2ecc71;font-size:0.72rem;margin-top:0.3rem';
+            infoEl.textContent = '✓ Message ID ' + raw + ' (Saved Messages)';
+        }
+        return;
+    }
+
+    if (msgEl) msgEl.value = '';
+    if (chanEl) chanEl.value = '';
+    if (infoEl) {
+        infoEl.style.cssText = 'display:block;color:#e74c3c;font-size:0.72rem;margin-top:0.3rem';
+        infoEl.textContent = '⚠ Could not find a message ID in that — paste the share link or just the numeric message ID';
+    }
+}
 
 function addExtraFormat(key) {
     var f = formatFields[key];
     var msgEl  = document.getElementById(f.msg);
     var msgId  = msgEl ? msgEl.value.trim() : '';
-    if (!msgId) return toast('Enter a Message ID first', 'warn');
+    if (!msgId) return toast('Paste a share link or message ID first', 'warn');
 
     var chanEl  = document.getElementById(f.chan);
     var channelId = chanEl ? chanEl.value.trim() : '';
@@ -1077,6 +1148,8 @@ function addExtraFormat(key) {
     var quality = qualEl ? qualEl.value.trim() : '';
     var sizeEl  = document.getElementById(f.size);
     var size    = sizeEl ? sizeEl.value.trim() : '';
+    var linkEl  = document.getElementById(f.link);
+    var infoEl  = document.getElementById(f.info);
 
     var s = cfg();
     var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
@@ -1089,6 +1162,8 @@ function addExtraFormat(key) {
     if (qualEl) qualEl.value = '';
     if (sizeEl) sizeEl.value = '';
     if (chanEl) chanEl.value = '';
+    if (linkEl) linkEl.value = '';
+    if (infoEl) infoEl.style.display = 'none';
 }
 
 function removeExtraFormat(key, idx) {
@@ -1112,6 +1187,11 @@ function renderExtraFormats(key) {
 function resetExtraFormats(key) {
     extraFormats[key] = [];
     renderExtraFormats(key);
+    var f = formatFields[key];
+    var linkEl = document.getElementById(f.link);
+    var infoEl = document.getElementById(f.info);
+    if (linkEl) linkEl.value = '';
+    if (infoEl) infoEl.style.display = 'none';
 }
 
 // Given a primary {quality,url,size} plus any extras added for `key`,
@@ -1322,12 +1402,14 @@ function pickTMDB(id, title, poster, year, type) {
         document.getElementById('seriesPreview').innerHTML = preview;
         document.getElementById('epsSeries').innerHTML = '';
         document.getElementById('seriesForm').style.display = 'block';
+        renderExistingEpisodes('series');
     } else {
         sel.animation = { id:id, title:title, poster_path:cleanPoster };
         eps.animation = {};
         document.getElementById('animPreview').innerHTML = preview;
         document.getElementById('epsAnim').innerHTML = '';
         document.getElementById('animForm').style.display = 'block';
+        renderExistingEpisodes('animation');
     }
 }
 
@@ -1554,6 +1636,60 @@ async function delShow(id, title, type) {
     else delete db.anim[id];
     var ok = await deploy('Delete '+type+': '+title);
     if (ok) { toast(title+' deleted','ok'); renderShows(type); renderDash(); }
+}
+
+function renderExistingEpisodes(type) {
+    var isA = type === 'animation';
+    var selShow = isA ? sel.animation : sel.series;
+    var card = document.getElementById(isA ? 'aExistingEpsCard' : 'sExistingEpsCard');
+    var container = document.getElementById(isA ? 'aExistingEps' : 'sExistingEps');
+    if (!card || !container) return;
+
+    var dataStore = isA ? db.anim : db.series;
+    var show = selShow && dataStore[selShow.id];
+    if (!show || !show.seasons || !Object.keys(show.seasons).length) {
+        card.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
+
+    var rows = [];
+    Object.keys(show.seasons).sort(function(a,b){ return a-b; }).forEach(function(sn) {
+        Object.keys(show.seasons[sn]).sort(function(a,b){ return a-b; }).forEach(function(en) {
+            var entry = show.seasons[sn][en];
+            var sizeLabel = dlSize(entry);
+            rows.push(
+                '<div class="ep-row">' +
+                    '<span class="ep-badge">S'+sn+'E'+en+'</span>' +
+                    '<span class="ep-url">'+dlUrl(entry)+'</span>' +
+                    (sizeLabel ? '<span style="font-size:0.7rem;color:var(--muted);margin:0 6px;font-family:\'JetBrains Mono\',monospace;flex-shrink:0">'+sizeLabel+'</span>' : '') +
+                    '<button class="ep-del" onclick="deleteEpisode(\''+type+'\','+selShow.id+','+sn+','+en+')" title="Delete this episode"><i class="fas fa-times"></i></button>' +
+                '</div>'
+            );
+        });
+    });
+
+    card.style.display = 'block';
+    container.innerHTML = rows.join('') || '<div style="color:var(--muted);font-size:0.82rem">No episodes saved yet.</div>';
+}
+
+async function deleteEpisode(type, showId, sn, en) {
+    if (!confirm('Delete Season '+sn+' Episode '+en+'? This removes it from the live site on next deploy.')) return;
+    var dataStore = type === 'animation' ? db.anim : db.series;
+    var show = dataStore[showId];
+    if (!show || !show.seasons || !show.seasons[sn] || !(en in show.seasons[sn])) {
+        return toast('Episode not found','err');
+    }
+    delete show.seasons[sn][en];
+    if (!Object.keys(show.seasons[sn]).length) delete show.seasons[sn];
+
+    var ok = await deploy('Delete '+type+' episode S'+sn+'E'+en+' — '+show.title);
+    if (ok) {
+        toast('Episode deleted ✓','ok');
+        renderExistingEpisodes(type);
+        renderShows(type);
+        renderDash();
+    }
 }
 
 // ── RENDER ────────────────────────────────
