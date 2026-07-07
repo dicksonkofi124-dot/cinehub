@@ -50,6 +50,7 @@ const els = {
 document.addEventListener('DOMContentLoaded', () => {
     loadPopularMovies();
     setupEventListeners();
+    setupCardClickDelegation();
 
     // If this page was opened via a shared movie/series link, open it
     openSharedLinkIfPresent();
@@ -58,6 +59,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedSection = window.location.hash.substring(1) || 'movies';
     switchSection(savedSection);
 });
+
+// ─── Robust card-click handling via event delegation ─────────────────────
+// Previously each grid attached a fresh click listener to every card after
+// every re-render (loadSeries/loadAnimations/loadTrendingMovies/displayMovies).
+// That's fragile: if a render path is skipped, runs before the DOM update
+// settles, or throws partway through, a card can end up with no listener at
+// all and silently do nothing when tapped — which is exactly what "the card
+// doesn't open" looks like from the outside. Attaching ONE listener per grid,
+// once, and letting it match whichever card was actually tapped removes that
+// whole failure mode: it doesn't matter how many times innerHTML is replaced.
+function setupCardClickDelegation() {
+    const grids = [els.moviesGrid, els.trendingGrid, els.animationGrid, els.seriesGrid];
+    grids.forEach(grid => {
+        if (!grid) return;
+        grid.addEventListener('click', (e) => {
+            // Don't hijack taps on the overlay buttons (watchlist/share/etc).
+            if (e.target.closest('button')) return;
+            const card = e.target.closest('.movie-card');
+            if (!card || !grid.contains(card)) return;
+            const movieId = card.dataset.movieId;
+            try {
+                showMovieDetails(movieId);
+            } catch (err) {
+                console.error('Failed to open details for movie/series id', movieId, err);
+                showNotification("Couldn't open that title — please try again.");
+            }
+        });
+    });
+}
 
 function setupEventListeners() {
     els.searchBtn.addEventListener('click', handleSearch);
@@ -434,15 +464,9 @@ async function loadTrendingMovies() {
             document.getElementById('trending').style.display = 'block';
             document.getElementById('movies').style.display = 'none';
             els.trendingGrid.innerHTML = validMovies.map(createMovieCard).join('');
+            // Card clicks are handled by the delegated listener set up in
+            // setupCardClickDelegation(), so no per-card listeners needed here.
 
-            // Add click listeners to trending cards
-            els.trendingGrid.querySelectorAll('.movie-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const movieId = card.dataset.movieId;
-                    showMovieDetails(movieId);
-                });
-            });
-            
             hideLoading();
         } catch (err) {
             console.error('Failed to load uploaded movies:', err);
@@ -471,14 +495,8 @@ async function loadAnimations() {
         document.getElementById('movies').style.display = 'none';
         document.getElementById('trending').style.display = 'none';
         els.animationGrid.innerHTML = animationList.map(createMovieCard).join('');
-
-        // Add click listeners to animation cards
-        els.animationGrid.querySelectorAll('.movie-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const movieId = card.dataset.movieId;
-                showMovieDetails(movieId);
-            });
-        });
+        // Card clicks are handled by the delegated listener set up in
+        // setupCardClickDelegation(), so no per-card listeners needed here.
     } else {
         els.animationGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No animations available</p>';
     }
@@ -506,14 +524,8 @@ async function loadSeries() {
         }
 
         els.seriesGrid.innerHTML = seriesList.map(createMovieCard).join('');
-
-        // Add click listeners to series cards
-        els.seriesGrid.querySelectorAll('.movie-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const movieId = card.dataset.movieId;
-                showMovieDetails(movieId);
-            });
-        });
+        // Card clicks are handled by the delegated listener set up in
+        // setupCardClickDelegation(), so no per-card listeners needed here.
     } else {
         els.seriesGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #888;">No series added yet.</p>';
     }
@@ -640,17 +652,22 @@ function closeModal() {
 
 // UPDATED: Now supports series and animations from movies-data.js
 async function showMovieDetails(movieId) {
-    if (window.seriesData && window.seriesData[movieId]) {
-        displaySeriesModal(window.seriesData[movieId], 'series');
-        return;
+    try {
+        if (window.seriesData && window.seriesData[movieId]) {
+            displaySeriesModal(window.seriesData[movieId], 'series');
+            return;
+        }
+        if (window.animationData && window.animationData[movieId]) {
+            displaySeriesModal(window.animationData[movieId], 'animation');
+            return;
+        }
+
+        const data = await fetchFromAPI(`/movie/${movieId}?append_to_response=credits`);
+        if (data) displayMovieModal(data);
+    } catch (err) {
+        console.error('showMovieDetails failed for id', movieId, err && err.stack || err);
+        showNotification("Couldn't open that title — please try again.");
     }
-    if (window.animationData && window.animationData[movieId]) {
-        displaySeriesModal(window.animationData[movieId], 'animation');
-        return;
-    }
-    
-    const data = await fetchFromAPI(`/movie/${movieId}?append_to_response=credits`);
-    if (data) displayMovieModal(data);
 }
 
 // ─── Series/Animation Download Progress Tracking ─────────────────────────
@@ -1042,26 +1059,15 @@ function displayMovies(movies) {
 
     els.moviesGrid.innerHTML = movies.map(createMovieCard).join('');
     els.loadMoreBtn.style.display = 'block';
-
-    els.moviesGrid.querySelectorAll('.movie-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const movieId = card.dataset.movieId;
-            showMovieDetails(movieId);
-        });
-    });
+    // Card clicks are handled by the delegated listener set up in
+    // setupCardClickDelegation(), so no per-card listeners needed here.
 }
 
 function appendMovies(movies) {
     if (!movies?.length) return;
     els.moviesGrid.insertAdjacentHTML('beforeend', movies.map(createMovieCard).join(''));
-
-    els.moviesGrid.querySelectorAll('.movie-card:not([data-listener-added])').forEach(card => {
-        card.dataset.listenerAdded = 'true';
-        card.addEventListener('click', () => {
-            const movieId = card.dataset.movieId;
-            showMovieDetails(movieId);
-        });
-    });
+    // Card clicks are handled by the delegated listener set up in
+    // setupCardClickDelegation(), so no per-card listeners needed here.
 }
 
 function createMovieCard(movie) {
