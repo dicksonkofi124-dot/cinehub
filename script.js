@@ -666,7 +666,7 @@ async function showMovieDetails(movieId) {
         if (data) displayMovieModal(data);
     } catch (err) {
         console.error('showMovieDetails failed for id', movieId, err && err.stack || err);
-        showNotification("Couldn't open that title — please try again.");
+        showNotification("Couldn't open that title: " + (err && err.message ? err.message : 'unknown error'));
     }
 }
 
