@@ -1,5 +1,5 @@
 // movies-data.js — Managed by CineHub Admin
-// Updated: 7/7/2026, 9:59:48 AM
+// Updated: 7/7/2026, 10:01:07 AM
 
 const downloadLinks = {
     83533: "https://cinehub-bridge.onrender.com/download/3506869277/19640",
@@ -9,6 +9,7 @@ const downloadLinks = {
     880067: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3885195394/5", size: "702 MB", quality: "720p" }] },
     980489: "https://cinehub-bridge.onrender.com/download/home/479",
     988233: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/2", size: "797 MB", quality: "720p" }] },
+    1084242: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3808397897/4", size: "804 MB", quality: "720p" }] },
     1102883: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3885195394/36", size: "676 MB", quality: "720p" }, { url: "https://cinehub-bridge.onrender.com/download/3885195394/37", size: "1.4 GB", quality: "1080p" }] },
     1122573: "https://cinehub-bridge.onrender.com/download/home/478",
     1227877: { formats: [{ url: "https://cinehub-bridge.onrender.com/download/3885195394/29", size: "1.6 GB", quality: "1080p" }, { url: "https://cinehub-bridge.onrender.com/download/3885195394/28", size: "811 MB", quality: "720p" }] },
