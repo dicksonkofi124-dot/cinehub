@@ -275,10 +275,10 @@ async function renderWatchlist() {
         const movies = await Promise.all(promises);
 
         grid.innerHTML = movies.map(movie => `
-            <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="movie">
-                <img src="${IMAGE_BASE_URL}${movie.poster_path}" alt="${movie.title}" class="movie-poster">
+            <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${escapeHtml(movie.title)}" data-media-type="movie">
+                <img src="${IMAGE_BASE_URL}${movie.poster_path}" alt="${escapeHtml(movie.title)}" class="movie-poster">
                 <div class="movie-info">
-                    <h3 class="movie-title">${movie.title}</h3>
+                    <h3 class="movie-title">${escapeHtml(movie.title)}</h3>
                     <div class="movie-meta">
                         <span>${movie.release_date ? movie.release_date.slice(0,4) : 'N/A'}</span>
                         <span class="rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
@@ -818,6 +818,23 @@ function displaySeriesModal(series, sourceType = 'series') {
 function entryUrl(entry) {
     return (entry && typeof entry === 'object') ? entry.url : entry;
 }
+
+// Properly escapes a string for safe use inside HTML attributes AND text
+// content. This replaces the old `.replace(/'/g, "\\'")` approach, which
+// only escaped apostrophes the JavaScript way — harmless for HTML, but did
+// nothing for a literal double-quote character in a title, which would
+// prematurely close a double-quoted attribute (e.g. data-movie-title="...")
+// and corrupt the rest of that card's markup. That's why some cards with
+// unusual titles would silently fail to open.
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 function entrySize(entry) {
     return (entry && typeof entry === 'object') ? (entry.size || '') : '';
 }
@@ -965,8 +982,8 @@ function displayMovieModal(movie) {
     const cast = movie.credits?.cast?.slice(0,6) || [];
     document.getElementById('modalCast').innerHTML = cast.map(c => `
         <div class="cast-member">
-            <img src="${c.profile_path ? IMAGE_BASE_URL + c.profile_path : 'https://via.placeholder.com/60'}" alt="${c.name}">
-            <p>${c.name}</p>
+            <img src="${c.profile_path ? IMAGE_BASE_URL + c.profile_path : 'https://via.placeholder.com/60'}" alt="${escapeHtml(c.name)}">
+            <p>${escapeHtml(c.name)}</p>
         </div>
     `).join('') || '<p>No cast info available.</p>';
 
@@ -1061,10 +1078,10 @@ function createMovieCard(movie) {
     const fileSize = cardFormats.length === 1 ? cardFormats[0].size : '';
 
     return `
-        <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${movie.title.replace(/'/g, "\\'")}" data-media-type="${mediaType}">
-            <img src="${poster}" alt="${movie.title}" class="movie-poster" loading="lazy">
+        <div class="movie-card" data-movie-id="${movie.id}" data-movie-title="${escapeHtml(movie.title)}" data-media-type="${mediaType}">
+            <img src="${poster}" alt="${escapeHtml(movie.title)}" class="movie-poster" loading="lazy">
             <div class="movie-info">
-                <h3 class="movie-title">${movie.title}</h3>
+                <h3 class="movie-title">${escapeHtml(movie.title)}</h3>
                 <div class="movie-meta">
                     <span>${year}</span>
                     <span class="rating">⭐ ${rating}</span>
