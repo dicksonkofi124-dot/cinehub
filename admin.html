@@ -1624,14 +1624,14 @@ async function saveShow(type) {
 }
 
 async function delMovie(id, title) {
-    if (!confirm('Delete "'+title+'"?')) return;
+    if (!confirm('Are you sure you want to delete "'+title+'"? This cannot be undone.')) return;
     delete db.dl[id];
     var ok = await deploy('Delete movie: '+title);
     if (ok) { toast(title+' deleted','ok'); renderMovies(); renderDash(); }
 }
 
 async function delShow(id, title, type) {
-    if (!confirm('Delete "'+title+'"?')) return;
+    if (!confirm('Are you sure you want to delete "'+title+'"? This removes the entire '+(type==='animation'?'animation':'series')+' — all seasons and episodes — and cannot be undone.')) return;
     if (type === 'series') delete db.series[id];
     else delete db.anim[id];
     var ok = await deploy('Delete '+type+': '+title);
@@ -1674,9 +1674,10 @@ function renderExistingEpisodes(type) {
 }
 
 async function deleteEpisode(type, showId, sn, en) {
-    if (!confirm('Delete Season '+sn+' Episode '+en+'? This removes it from the live site on next deploy.')) return;
     var dataStore = type === 'animation' ? db.anim : db.series;
     var show = dataStore[showId];
+    var showTitle = show ? show.title : ('#'+showId);
+    if (!confirm('Are you sure you want to delete Season '+sn+', Episode '+en+' of "'+showTitle+'"? This cannot be undone.')) return;
     if (!show || !show.seasons || !show.seasons[sn] || !(en in show.seasons[sn])) {
         return toast('Episode not found','err');
     }
@@ -1689,6 +1690,43 @@ async function deleteEpisode(type, showId, sn, en) {
         renderExistingEpisodes(type);
         renderShows(type);
         renderDash();
+    }
+}
+
+// Jump straight to the episode manager for an existing series/animation
+// without needing to re-search TMDB. Reuses the same "Existing Episodes"
+// panel that already powers per-episode deletion inside the Add Content flow.
+function manageShow(type, id) {
+    var dataStore = type === 'animation' ? db.anim : db.series;
+    var show = dataStore[id];
+    if (!show) return toast('Show not found','err');
+
+    var purl = show.poster_path ? IMG + show.poster_path : 'https://via.placeholder.com/60x90?text=N/A';
+    var safeTitle = String(show.title).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var preview = '<img src="'+purl+'" onerror="this.src=&quot;https://via.placeholder.com/60x90?text=No+Poster&quot;">' +
+                  '<div><h3>'+safeTitle+'</h3><p>TMDB ID: '+id+'</p></div>';
+
+    goTo('add');
+    switchTab(type);
+
+    if (type === 'series') {
+        sel.series = { id: show.id, title: show.title, poster_path: show.poster_path };
+        eps.series = {};
+        document.getElementById('seriesPreview').innerHTML = preview;
+        document.getElementById('epsSeries').innerHTML = '';
+        document.getElementById('seriesForm').style.display = 'block';
+        renderExistingEpisodes('series');
+        var sCard = document.getElementById('sExistingEpsCard');
+        if (sCard) sCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        sel.animation = { id: show.id, title: show.title, poster_path: show.poster_path };
+        eps.animation = {};
+        document.getElementById('animPreview').innerHTML = preview;
+        document.getElementById('epsAnim').innerHTML = '';
+        document.getElementById('animForm').style.display = 'block';
+        renderExistingEpisodes('animation');
+        var aCard = document.getElementById('aExistingEpsCard');
+        if (aCard) aCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -1732,7 +1770,10 @@ function renderShows(type) {
         return '<tr><td><img src="'+poster+'" style="width:38px;border-radius:4px"></td>' +
             '<td style="font-weight:600">'+s.title+'</td><td style="color:var(--muted);font-size:0.83rem">'+s.id+'</td>' +
             '<td>'+seasons+'</td><td>'+epCount+'</td>' +
-            '<td><button class="btn btn-danger btn-sm" onclick="delShow(\''+s.id+'\',\''+safeTitle+'\',\''+type+'\')"><i class="fas fa-trash"></i></button></td></tr>';
+            '<td style="display:flex;gap:0.4rem">' +
+                '<button class="btn btn-secondary btn-sm" onclick="manageShow(\''+type+'\',\''+s.id+'\')" title="Manage episodes"><i class="fas fa-list"></i></button>' +
+                '<button class="btn btn-danger btn-sm" onclick="delShow(\''+s.id+'\',\''+safeTitle+'\',\''+type+'\')" title="Delete '+type+'"><i class="fas fa-trash"></i></button>' +
+            '</td></tr>';
     }).join('');
 }
 
