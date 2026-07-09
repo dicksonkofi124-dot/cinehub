@@ -376,7 +376,7 @@
                         </div>
                         <div class="card" style="background:#0e1224;margin-top:0.5rem">
                             <div class="card-title" style="font-size:0.9rem"><i class="fas fa-layer-group" style="color:var(--red)"></i> Additional Formats (optional)</div>
-                            <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.75rem">Add extra quality versions of the same movie (must be Telegram/bridge links). Users will see a quality picker on the site instead of a single Download button.</small>
+                            <small style="color:var(--muted);font-size:0.78rem;display:block;margin-bottom:0.75rem">Add extra quality versions of the same movie — paste a Telegram share link/message ID, or a direct external mirror URL (GoFile, Pixeldrain, etc). Users will see a quality picker on the site instead of a single Download button.</small>
                             <div id="movieFormatsList" style="margin-bottom:0.75rem"></div>
                             <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:flex-end">
                                 <div class="fg" style="margin:0;flex:0 0 110px"><label>Quality</label><input type="text" id="movieExtraQuality" placeholder="720p" list="qualityPresets"></div>
@@ -1087,6 +1087,9 @@ var formatFields = {
     a:     { quality: 'aExtraQuality',     link: 'aExtraLink',     msg: 'aExtraMsgId',     chan: 'aExtraChannelId',     size: 'aExtraSize',     list: 'aFormatsList',     info: 'aExtraInfo' }
 };
 var extraFormats = { movie: [], s: [], a: [] };
+// Holds a detected external mirror URL (GoFile/Pixeldrain/etc.) per key, set
+// by handleExtraLinkInput when the pasted text isn't a Telegram share link.
+var extraMirror = { movie: '', s: '', a: '' };
 
 // Mirrors the convenience of the main "paste a link" flow: parses a TDrive/
 // bridge share link (or a bare message ID) and fills in the hidden msg/channel
@@ -1098,6 +1101,8 @@ function handleExtraLinkInput(key) {
     var chanEl = document.getElementById(f.chan);
     var infoEl = document.getElementById(f.info);
     var raw = linkEl ? linkEl.value.trim() : '';
+
+    extraMirror[key] = '';
 
     if (!raw) {
         if (msgEl) msgEl.value = '';
@@ -1128,11 +1133,24 @@ function handleExtraLinkInput(key) {
         return;
     }
 
+    // Fallback: a plain external URL (GoFile, Pixeldrain, Terabox, a direct
+    // mp4 link, etc.) — save it as-is instead of routing through the bridge.
+    if (/^https?:\/\//i.test(raw)) {
+        if (msgEl) msgEl.value = '';
+        if (chanEl) chanEl.value = '';
+        extraMirror[key] = raw;
+        if (infoEl) {
+            infoEl.style.cssText = 'display:block;color:#7ec8e3;font-size:0.72rem;margin-top:0.3rem';
+            infoEl.textContent = '🔗 External mirror link — will be saved as-is (no bridge/Telegram involved)';
+        }
+        return;
+    }
+
     if (msgEl) msgEl.value = '';
     if (chanEl) chanEl.value = '';
     if (infoEl) {
         infoEl.style.cssText = 'display:block;color:#e74c3c;font-size:0.72rem;margin-top:0.3rem';
-        infoEl.textContent = '⚠ Could not find a message ID in that — paste the share link or just the numeric message ID';
+        infoEl.textContent = '⚠ Could not find a message ID in that — paste the share link, a numeric message ID, or a direct external URL';
     }
 }
 
@@ -1140,7 +1158,8 @@ function addExtraFormat(key) {
     var f = formatFields[key];
     var msgEl  = document.getElementById(f.msg);
     var msgId  = msgEl ? msgEl.value.trim() : '';
-    if (!msgId) return toast('Paste a share link or message ID first', 'warn');
+    var mirror = extraMirror[key];
+    if (!msgId && !mirror) return toast('Paste a share link, message ID, or external mirror URL first', 'warn');
 
     var chanEl  = document.getElementById(f.chan);
     var channelId = chanEl ? chanEl.value.trim() : '';
@@ -1151,9 +1170,14 @@ function addExtraFormat(key) {
     var linkEl  = document.getElementById(f.link);
     var infoEl  = document.getElementById(f.info);
 
-    var s = cfg();
-    var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
-    var url = bridgeBase + '/download/' + (channelId || 'home') + '/' + msgId;
+    var url;
+    if (mirror) {
+        url = mirror;
+    } else {
+        var s = cfg();
+        var bridgeBase = (s.bridge || 'https://cinehub-bridge.onrender.com').replace(/\/$/, '');
+        url = bridgeBase + '/download/' + (channelId || 'home') + '/' + msgId;
+    }
 
     extraFormats[key].push({ quality: quality, url: url, size: size });
     renderExtraFormats(key);
@@ -1164,6 +1188,7 @@ function addExtraFormat(key) {
     if (chanEl) chanEl.value = '';
     if (linkEl) linkEl.value = '';
     if (infoEl) infoEl.style.display = 'none';
+    extraMirror[key] = '';
 }
 
 function removeExtraFormat(key, idx) {
@@ -1186,6 +1211,7 @@ function renderExtraFormats(key) {
 
 function resetExtraFormats(key) {
     extraFormats[key] = [];
+    extraMirror[key] = '';
     renderExtraFormats(key);
     var f = formatFields[key];
     var linkEl = document.getElementById(f.link);
