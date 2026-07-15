@@ -240,6 +240,9 @@ body {
 .hero {
     padding: 2rem 1rem 1rem;
     margin-top: -1px;
+    min-height: 100vh;   /* fallback for browsers without dvh support */
+    min-height: 100dvh;  /* tracks the real visible viewport as mobile browser chrome shows/hides */
+    box-sizing: border-box;
 }
 
 .hero-bulbframe {
